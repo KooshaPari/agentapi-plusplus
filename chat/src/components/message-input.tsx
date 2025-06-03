@@ -93,7 +93,7 @@ export default function MessageInput({
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = "en-US";
-      
+
       recognition.onresult = (event: any) => {
         let finalTranscript = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -105,17 +105,17 @@ export default function MessageInput({
           setMessage((prev) => prev + " " + finalTranscript);
         }
       };
-      
+
       recognition.onerror = (event: any) => {
         console.error("Voice input error:", event.error);
         setIsListening(false);
         toast.error("Voice input failed");
       };
-      
+
       recognition.onend = () => {
         setIsListening(false);
       };
-      
+
       recognitionRef.current = recognition;
       recognition.start();
       setIsListening(true);
