@@ -10,7 +10,6 @@ import {
   CornerDownLeftIcon,
   DeleteIcon,
   Mic,
-  MicOff,
   SendIcon,
   Upload,
   Square,
