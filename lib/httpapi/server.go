@@ -325,11 +325,8 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 			currentStatus := s.conversation.Status()
 
 			// Send initial prompt when agent becomes stable for the first time
-			agentStatus, err := convertStatus(currentStatus)
-			if err != nil {
-				s.logger.Error("Failed to convert status", "error", err, "status", currentStatus)
-			}
-			if !s.conversation.InitialPromptSent && agentStatus == AgentStatusStable {
+			if !s.conversation.InitialPromptSent && convertStatus(currentStatus) == AgentStatusStable {
+
 				if err := s.conversation.SendMessage(FormatMessage(s.agentType, s.conversation.InitialPrompt)...); err != nil {
 					s.logger.Error("Failed to send initial prompt", "error", err)
 				} else {
@@ -338,9 +335,7 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 					s.logger.Info("Initial prompt sent successfully")
 				}
 			}
-			if err := s.emitter.UpdateStatusAndEmitChanges(currentStatus, s.agentType); err != nil {
-				s.logger.Error("Failed to update status and emit changes", "error", err)
-			}
+			s.emitter.UpdateStatusAndEmitChanges(currentStatus, s.agentType)
 			s.emitter.UpdateMessagesAndEmitChanges(s.conversation.Messages())
 			s.emitter.UpdateScreenAndEmitChanges(s.conversation.Screen())
 			time.Sleep(snapshotInterval)
@@ -350,47 +345,14 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 
 // registerRoutes sets up all API endpoints
 func (s *Server) registerRoutes() {
-	// GET /logs endpoint
-	huma.Get(s.api, "/logs", s.getLogs, func(o *huma.Operation) {
-		o.Description = "Returns server logs."
-	})
-	huma.Post(s.api, "/api-key", s.generateAPIKey, func(o *huma.Operation) {
-		o.Description = "Generate a new API key for authentication."
-	})
-	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
-		o.Description = "Health check endpoint for load balancers."
-	})
-	huma.Get(s.api, "/config", s.getConfig, func(o *huma.Operation) {
-		o.Description = "Returns the server configuration."
-	})
-	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
-		o.Description = "Returns the server version."
-	})
-	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
-		o.Description = "Readiness probe for Kubernetes."
-	})
-	huma.Get(s.api, "/rate-limit", s.getRateLimit, func(o *huma.Operation) {
-		o.Description = "Returns rate limit status."
-	})
-
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
 	})
 
 	// GET /messages endpoint
-	// Query params: after (int) - return messages after this ID, limit (int) - limit results
 	huma.Get(s.api, "/messages", s.getMessages, func(o *huma.Operation) {
-		o.Description = "Returns a list of messages representing the conversation history with the agent. Supports ?after=<id> and ?limit=<n> query parameters for pagination."
-	})
-	// GET /messages/count endpoint
-	huma.Get(s.api, "/messages/count", s.getMessagesCount, func(o *huma.Operation) {
-		o.Description = "Returns the count of messages in the conversation."
-	})
-
-	// DELETE /messages endpoint - clear all messages
-	huma.Delete(s.api, "/messages", s.clearMessages, func(o *huma.Operation) {
-		o.Description = "Clear all messages from conversation history."
+		o.Description = "Returns a list of messages representing the conversation history with the agent."
 	})
 
 	// POST /message endpoint
@@ -433,71 +395,13 @@ func (s *Server) registerRoutes() {
 	s.registerStaticFileRoutes()
 }
 
-// getLogs handles GET /logs
-func (s *Server) getLogs(ctx context.Context, input *struct{}) (*LogsResponse, error) {
-	resp := &LogsResponse{}
-	resp.Body.Logs = []string{}
-	return resp, nil
-}
-
-func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	resp := &InfoResponse{}
-	resp.Body.Version = version.Version
-	resp.Body.AgentType = s.agentType
-	resp.Body.Features = map[string]bool{
-		"messages":   true,
-		"events":     true,
-		"upload":     true,
-		"pagination": true,
-		"slashCmd":   true,
-	}
-	return resp, nil
-}
-
-func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthResponse, error) {
-	resp := &HealthResponse{}
-	resp.Body.Status = "ok"
-	return resp, nil
-}
-
-func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigResponse, error) {
-	resp := &ConfigResponse{}
-	resp.Body.AgentType = string(s.agentType)
-	resp.Body.Port = s.port
-	return resp, nil
-}
-
-func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
-	resp := &VersionResponse{}
-	resp.Body.Version = version.Version
-	return resp, nil
-}
-
-func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
-	resp := &ReadyResponse{}
-	resp.Body.Ready = true
-	return resp, nil
-}
-
-func (s *Server) getRateLimit(ctx context.Context, input *struct{}) (*RateLimitResponse, error) {
-	resp := &RateLimitResponse{}
-	resp.Body.Enabled = false
-	resp.Body.Requests = 100
-	return resp, nil
-}
-
 // getStatus handles GET /status
 func (s *Server) getStatus(ctx context.Context, input *struct{}) (*StatusResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	status := s.conversation.Status()
-	agentStatus, err := convertStatus(status)
-	if err != nil {
-		return nil, xerrors.Errorf("failed to convert status: %w", err)
-	}
+	agentStatus := convertStatus(status)
 
 	resp := &StatusResponse{}
 	resp.Body.Status = agentStatus
@@ -507,42 +411,13 @@ func (s *Server) getStatus(ctx context.Context, input *struct{}) (*StatusRespons
 }
 
 // getMessages handles GET /messages
-//
-//	@param after (query) int "Return messages after this ID"
-//	@param limit (query) int "Limit number of messages returned"
-func (s *Server) getMessages(ctx context.Context, input *struct {
-	After *int `json:"after,optional"`
-	Limit *int `json:"limit,optional"`
-}) (*MessagesResponse, error) {
+func (s *Server) getMessages(ctx context.Context, input *struct{}) (*MessagesResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	allMessages := s.conversation.Messages()
-
-	// Filter by 'after' parameter
-	messages := allMessages
-	if input.After != nil {
-		afterID := *input.After
-		filtered := make([]st.ConversationMessage, 0)
-		for _, msg := range allMessages {
-			if msg.Id > afterID {
-				filtered = append(filtered, msg)
-			}
-		}
-		messages = filtered
-	}
-
-	// Apply limit
-	if input.Limit != nil && *input.Limit > 0 {
-		limit := *input.Limit
-		if len(messages) > limit {
-			messages = messages[:limit]
-		}
-	}
-
 	resp := &MessagesResponse{}
-	resp.Body.Messages = make([]Message, len(messages))
-	for i, msg := range messages {
+	resp.Body.Messages = make([]Message, len(s.conversation.Messages()))
+	for i, msg := range s.conversation.Messages() {
 		resp.Body.Messages[i] = Message{
 			Id:      msg.Id,
 			Role:    msg.Role,
@@ -551,27 +426,6 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 		}
 	}
 
-	return resp, nil
-}
-
-// clearMessages handles DELETE /messages
-func (s *Server) clearMessages(ctx context.Context, input *struct{}) (*MessagesClearResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	resp := &MessagesClearResponse{}
-	count := len(s.conversation.Messages())
-	s.conversation.ClearMessages()
-	resp.Body.Ok = true
-	resp.Body.Count = count
-	return resp, nil
-}
-
-func (s *Server) getMessagesCount(ctx context.Context, input *struct{}) (*MessagesCountResponse, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	resp := &MessagesCountResponse{}
-	resp.Body.Count = len(s.conversation.Messages())
 	return resp, nil
 }
 
