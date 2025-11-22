@@ -271,15 +271,17 @@ export default function MessageInput({
                 </TabsList>
 
                 <div className={"flex flex-row gap-3"}>
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className="rounded-full"
-                    onClick={handleUploadClick}
+                  {serverStatus !== "running" && <Button
+                      type="submit"
+                      size="icon"
+                      className="rounded-full"
+                      onClick={handleUploadClick}
+                      title={"Upload File"}
                   >
-                    <Upload/>
-                    <span className="sr-only">Upload</span>
+                      <Upload/>
+                      <span className="sr-only">Upload</span>
                   </Button>
+                  }
 
                   {inputMode === "text" && serverStatus !== "running" && (
                     <Button
@@ -287,6 +289,7 @@ export default function MessageInput({
                       disabled={disabled || !message.trim()}
                       size="icon"
                       className="rounded-full"
+                      title={"Send Message"}
                     >
                       <SendIcon/>
                       <span className="sr-only">Send</span>
@@ -301,6 +304,7 @@ export default function MessageInput({
                       onClick={() => {
                         onSendMessage(specialKeys.Escape, "raw");
                       }}
+                      title={"Interrupt"}
                     >
                       <Square/>
                       <span className="sr-only">Stop</span>
