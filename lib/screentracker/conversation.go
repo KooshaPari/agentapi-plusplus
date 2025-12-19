@@ -3,6 +3,7 @@ package screentracker
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -43,6 +44,9 @@ type ConversationConfig struct {
 	SkipSendMessageStatusCheck bool
 	// ReadyForInitialPrompt detects whether the agent has initialized and is ready to accept the initial prompt
 	ReadyForInitialPrompt func(message string) bool
+	// FormatToolCall removes the coder report_task tool call from the agent message and also returns the array of removed tool calls
+	FormatToolCall func(message string) (string, []string)
+	Logger         *slog.Logger
 }
 
 type ConversationRole string
@@ -82,6 +86,8 @@ type Conversation struct {
 	InitialPromptSent bool
 	// ReadyForInitialPrompt keeps track if the agent is ready to accept the initial prompt
 	ReadyForInitialPrompt bool
+	// toolCallMessageSet keeps track of the tool calls that have been detected & logged in the current agent message
+	toolCallMessageSet map[string]bool
 }
 
 type ConversationStatus string
@@ -115,8 +121,9 @@ func NewConversation(ctx context.Context, cfg ConversationConfig, initialPrompt 
 				Time:    cfg.GetTime(),
 			},
 		},
-		InitialPrompt:     initialPrompt,
-		InitialPromptSent: strings.TrimSpace(initialPrompt) == "",
+		InitialPrompt:      initialPrompt,
+		InitialPromptSent:  len(initialPrompt) == 0,
+		toolCallMessageSet: make(map[string]bool),
 	}
 	return c
 }
@@ -166,13 +173,8 @@ func FindNewMessage(oldScreen, newScreen string, agentType msgfmt.AgentType) str
 		oldLinesMap[line] = true
 	}
 	firstNonMatchingLine := len(newLines)
-	// Start from dynamicHeaderEnd+1 to skip header
-	startIdx := dynamicHeaderEnd + 1
-	if startIdx < 0 {
-		startIdx = 0
-	}
-	for i := startIdx; i < len(newLines); i++ {
-		if !oldLinesMap[newLines[i]] {
+	for i, line := range newLines[dynamicHeaderEnd+1:] {
+		if !oldLinesMap[line] {
 			firstNonMatchingLine = i
 			break
 		}
@@ -210,8 +212,18 @@ func (c *Conversation) lastMessage(role ConversationRole) ConversationMessage {
 func (c *Conversation) updateLastAgentMessage(screen string, timestamp time.Time) {
 	agentMessage := FindNewMessage(c.screenBeforeLastUserMessage, screen, c.cfg.AgentType)
 	lastUserMessage := c.lastMessage(ConversationRoleUser)
+	var toolCalls []string
 	if c.cfg.FormatMessage != nil {
 		agentMessage = c.cfg.FormatMessage(agentMessage, lastUserMessage.Message)
+	}
+	if c.cfg.FormatToolCall != nil {
+		agentMessage, toolCalls = c.cfg.FormatToolCall(agentMessage)
+	}
+	for _, toolCall := range toolCalls {
+		if c.toolCallMessageSet[toolCall] == false {
+			c.toolCallMessageSet[toolCall] = true
+			c.cfg.Logger.Info("Tool call detected", "toolCall", toolCall)
+		}
 	}
 	shouldCreateNewMessage := len(c.messages) == 0 || c.messages[len(c.messages)-1].Role == ConversationRoleUser
 	lastAgentMessage := c.lastMessage(ConversationRoleAgent)
@@ -225,6 +237,10 @@ func (c *Conversation) updateLastAgentMessage(screen string, timestamp time.Time
 	}
 	if shouldCreateNewMessage {
 		c.messages = append(c.messages, conversationMessage)
+
+		// Cleanup
+		c.toolCallMessageSet = make(map[string]bool)
+
 	} else {
 		c.messages[len(c.messages)-1] = conversationMessage
 	}
@@ -347,22 +363,11 @@ var MessageValidationErrorWhitespace = xerrors.New("message must be trimmed of l
 var MessageValidationErrorEmpty = xerrors.New("message must not be empty")
 var MessageValidationErrorChanging = xerrors.New("message can only be sent when the agent is waiting for user input")
 
-// isAskUserQuestionPrompt detects if the screen contains an AskUserQuestion TUI prompt
-// by checking for the "Enter to select" indicator that appears in interactive menus.
-func isAskUserQuestionPrompt(screen string) bool {
-	return strings.Contains(screen, "Enter to select")
-}
-
 func (c *Conversation) SendMessage(messageParts ...MessagePart) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	// Auto-skip status check for AskUserQuestion prompts
-	// These interactive TUI menus never stabilize because the cursor keeps blinking
-	currentScreen := c.cfg.AgentIO.ReadScreen()
-	skipCheck := c.cfg.SkipSendMessageStatusCheck || isAskUserQuestionPrompt(currentScreen)
-
-	if !skipCheck && c.statusInner() != ConversationStatusStable {
+	if !c.cfg.SkipSendMessageStatusCheck && c.statusInner() != ConversationStatusStable {
 		return MessageValidationErrorChanging
 	}
 
@@ -447,13 +452,6 @@ func (c *Conversation) Messages() []ConversationMessage {
 	result := make([]ConversationMessage, len(c.messages))
 	copy(result, c.messages)
 	return result
-}
-
-// ClearMessages removes all messages from the conversation
-func (c *Conversation) ClearMessages() {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.messages = []ConversationMessage{}
 }
 
 func (c *Conversation) Screen() string {
