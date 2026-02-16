@@ -62,6 +62,13 @@ func (c ConversationRole) Schema(r huma.Registry) *huma.Schema {
 	return util.OpenAPISchema(r, "ConversationRole", ConversationRoleValues)
 }
 
+// Emitter receives conversation state updates.
+type Emitter interface {
+	EmitMessages([]ConversationMessage)
+	EmitStatus(ConversationStatus)
+	EmitScreen(string)
+}
+
 type ConversationMessage struct {
 	Id      int
 	Message string
