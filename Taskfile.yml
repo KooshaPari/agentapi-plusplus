@@ -1,0 +1,30 @@
+version: '3'
+
+tasks:
+  lint:
+    cmds:
+      - golangci-lint run ./...
+
+  test:
+    cmds:
+      - go test ./...
+
+  build:
+    cmds:
+      - make build
+
+  docs:install:
+    dir: docs
+    cmds:
+      - npm install
+
+  docs:build:
+    dir: docs
+    cmds:
+      - npm run docs:build
+
+  quality:
+    cmds:
+      - task lint
+      - task test
+      - task docs:build

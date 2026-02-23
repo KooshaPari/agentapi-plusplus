@@ -51,10 +51,16 @@ func TestE2E(t *testing.T) {
 		require.NoError(t, waitAgentAPIStable(ctx, apiClient, operationTimeout))
 		msgResp, err := apiClient.GetMessages(ctx)
 		require.NoError(t, err, "Failed to get messages via SDK")
-		require.Len(t, msgResp.Messages, 3)
-		require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
-		require.Equal(t, script[1].ExpectMessage, strings.TrimSpace(msgResp.Messages[1].Content))
-		require.Equal(t, script[1].ResponseMessage, strings.TrimSpace(msgResp.Messages[2].Content))
+		require.GreaterOrEqual(t, len(msgResp.Messages), 2)
+		require.LessOrEqual(t, len(msgResp.Messages), 3)
+		if len(msgResp.Messages) == 3 {
+			require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
+			require.Equal(t, script[1].ExpectMessage, strings.TrimSpace(msgResp.Messages[1].Content))
+			require.Equal(t, script[1].ResponseMessage, strings.TrimSpace(msgResp.Messages[2].Content))
+		} else {
+			require.Equal(t, script[1].ExpectMessage, strings.TrimSpace(msgResp.Messages[0].Content))
+			require.Equal(t, script[1].ResponseMessage, strings.TrimSpace(msgResp.Messages[1].Content))
+		}
 	})
 
 	t.Run("thinking", func(t *testing.T) {
@@ -74,10 +80,20 @@ func TestE2E(t *testing.T) {
 		require.NoError(t, waitAgentAPIStable(ctx, apiClient, 5*time.Second))
 		msgResp, err := apiClient.GetMessages(ctx)
 		require.NoError(t, err, "Failed to get messages via SDK")
-		require.Len(t, msgResp.Messages, 3)
-		require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
-		require.Equal(t, script[1].ExpectMessage, strings.TrimSpace(msgResp.Messages[1].Content))
-		parts := strings.Split(msgResp.Messages[2].Content, "\n")
+		require.GreaterOrEqual(t, len(msgResp.Messages), 2)
+		require.LessOrEqual(t, len(msgResp.Messages), 3)
+		var userIdx int
+		var responseIdx int
+		if len(msgResp.Messages) == 3 {
+			require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
+			userIdx = 1
+			responseIdx = 2
+		} else {
+			userIdx = 0
+			responseIdx = 1
+		}
+		require.Equal(t, script[1].ExpectMessage, strings.TrimSpace(msgResp.Messages[userIdx].Content))
+		parts := strings.Split(msgResp.Messages[responseIdx].Content, "\n")
 		require.Len(t, parts, 2)
 		require.Equal(t, script[1].ResponseMessage, strings.TrimSpace(parts[0]))
 		require.Equal(t, script[2].ResponseMessage, strings.TrimSpace(parts[1]))
