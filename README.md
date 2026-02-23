@@ -1,85 +1,49 @@
-# AgentAPI (KooshaPari Fork)
+# agentapi
 
-HTTP API for controlling AI coding agents (Claude Code, Cursor, Aider, etc.)
+Agent API Layer - Sits between thegent and cliproxy+bifrost.
 
-This repository works with Claude and other AI agents as autonomous software engineers.
+## Architecture
 
-## Quick Start
-
-```bash
-# Install binary
-OS=$(uname -s | tr "[:upper:]" "[:lower:]")
-ARCH=$(uname -m | sed "s/x86_64/amd64/;s/aarch64/arm64/")
-curl -fsSL "https://github.com/KooshaPari/agentapi/releases/latest/download/agentapi-${OS}-${ARCH}" -o agentapi
-chmod +x agentapi
-
-# Or build from source
-go build -o out/agentapi main.go
-
-# Run with agent
-./agentapi server -- claude
+```
+thegent → heliosHarness → agentapi → cliproxy+bifrost
 ```
 
-## Environment
+## Purpose
+
+- **Intermediary layer** between thegent and proxy
+- **Custom routing rules** per agent
+- **Session-aware** load balancing
+- **Agent-specific governance**
+- **Dynamic benchmark data** from tokenledger
+
+## Usage
 
 ```bash
-# Optional environment variables
-export AGENTAPI_PORT=3284
-export AGENTAPI_MODEL=claude-3-5-sonnet-20241022
+# Start agentapi
+go run ./cmd/agentapi/main.go --port 8318 --cliproxy http://127.0.0.1:8317
 ```
 
----
+## Endpoints
 
-## Development Philosophy
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check |
+| `POST /v1/chat completions` | Chat with agent routing |
+| `GET /admin/rules` | List routing rules |
+| `POST /admin/rules` | Set routing rule |
+| `GET /admin/sessions` | List active sessions |
 
-### Extend, Never Duplicate
+## Routing Rules
 
-- NEVER create a v2 file. Refactor the original.
-- NEVER create a new class if an existing one can be made generic.
-- NEVER create custom implementations when an OSS library exists.
-- Before writing ANY new code: search the codebase for existing patterns.
-
-### Primitives First
-
-- Build generic building blocks before application logic.
-- A provider interface + registry is better than N isolated classes.
-- Template strings > hardcoded messages. Config-driven > code-driven.
-
-### Research Before Implementing
-
-- Check pkg.go.dev for existing libraries.
-- Search GitHub for 80%+ implementations to fork/adapt.
-
----
-
-## Library Preferences (DO NOT REINVENT)
-
-| Need | Use | NOT |
-|------|-----|-----|
-| HTTP router | chi | custom router |
-| CLI | cobra | manual flag parsing |
-| Logging | zerolog | fmt.Print |
-| Terminal emulation | tty | raw os/exec |
-
----
-
-## Code Quality Non-Negotiables
-
-- Zero new lint suppressions without inline justification
-- All new code must pass: go fmt, go vet, golint
-- Max function: 40 lines
-- No placeholder TODOs in committed code
-
----
-
-## Verifiable Constraints
-
-| Metric | Threshold | Enforcement |
-|--------|-----------|-------------|
-| Tests | 80% coverage | CI gate |
-| Lint | 0 errors | golangci-lint |
-
----
+```json
+{
+  "agent": "claude",
+  "preferred_model": "claude-3-5-sonnet-20241022",
+  "fallback_models": ["gpt-4o", "gemini-1.5-pro"],
+  "max_retries": 3,
+  "timeout_seconds": 30
+}
+```
 
 ## Supported Agents
 
@@ -97,36 +61,20 @@ export AGENTAPI_MODEL=claude-3-5-sonnet-20241022
 | Auggie | auggie | ✅ |
 | Cursor | cursor | ✅ |
 
----
+## Build
 
-## Integration
-
-### With thegent
-
-```python
-# thegent config
-mcp:
-  servers:
-    agentapi:
-      command: agentapi
-      args: ["server", "--", "claude"]
+```bash
+go build -o agentapi ./cmd/agentapi
 ```
-
-### With cliproxy
-
-The agentapi routes LLM requests through cliproxy for cost optimization and rate limiting.
-
----
 
 ## Fork Differences
 
 This fork includes:
-- ✅ Custom message formatters for Kush agents
-- ✅ MCP server integration
-- ✅ cliproxy routing integration
-- ✅ Enhanced session management
-
----
+- Custom message formatters for Kush agents
+- MCP server integration
+- cliproxy routing integration
+- Enhanced session management
+- Bifrost extension for agent-specific routing
 
 ## License
 
