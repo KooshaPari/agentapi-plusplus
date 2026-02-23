@@ -10,15 +10,13 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/coder/agentapi/internal/benchmarks"
 )
+
 // AgentBifrost is the Bifrost extension for agent-specific routing
 // It sits between thegent and cliproxy+bifrost, providing:
 // - Custom routing rules per agent
 // - Session-aware load balancing
 // - Agent-specific governance
-// - Dynamic benchmark data from tokenledger
 type AgentBifrost struct {
 	cliproxyURL string
 	client     *http.Client
@@ -30,9 +28,6 @@ type AgentBifrost struct {
 	// Agent-specific routing rules
 	rules      map[string]RoutingRule
 	rulesMut   sync.RWMutex
-
-	// Benchmark data for routing decisions
-	benchmarks *benchmarks.Store
 }
 
 // AgentSession represents a session with routing metadata
@@ -60,9 +55,8 @@ func NewAgentBifrost(cliproxyURL string) (*AgentBifrost, error) {
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		sessions:   make(map[string]*AgentSession),
-		rules:      make(map[string]RoutingRule),
-		benchmarks: benchmarks.NewStore(),
+		sessions: make(map[string]*AgentSession),
+		rules:    make(map[string]RoutingRule),
 	}, nil
 }
 
@@ -70,7 +64,7 @@ func NewAgentBifrost(cliproxyURL string) (*AgentBifrost, error) {
 func (a *AgentBifrost) RouteRequest(ctx context.Context, agent string, prompt string) (*RoutingResponse, error) {
 	// Get agent-specific routing rules
 	rule := a.getRule(agent)
-	
+
 	// Build the request to cliproxy+bifrost
 	reqBody := map[string]interface{}{
 		"model":   rule.PreferredModel,
@@ -78,7 +72,7 @@ func (a *AgentBifrost) RouteRequest(ctx context.Context, agent string, prompt st
 		"agent":   agent,
 		"session": a.getOrCreateSession(agent),
 	}
-	
+
 	// Forward to cliproxy+bifrost
 	resp, err := a.forwardToCliproxy(ctx, reqBody)
 	if err != nil {
@@ -91,7 +85,7 @@ func (a *AgentBifrost) RouteRequest(ctx context.Context, agent string, prompt st
 			}
 		}
 	}
-	
+
 	return resp, err
 }
 
@@ -101,26 +95,26 @@ func (a *AgentBifrost) forwardToCliproxy(ctx context.Context, body map[string]in
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", a.cliproxyURL+"/v1/chat/completions", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Body = io.NopCloser(bytes.NewReader(jsonBody))
-	
+
 	resp, err := a.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request to cliproxy failed: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	var routingResp RoutingResponse
 	if err := json.NewDecoder(resp.Body).Decode(&routingResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	return &routingResp, nil
 }
 
@@ -128,11 +122,11 @@ func (a *AgentBifrost) forwardToCliproxy(ctx context.Context, body map[string]in
 func (a *AgentBifrost) getRule(agent string) RoutingRule {
 	a.rulesMut.RLock()
 	defer a.rulesMut.RUnlock()
-	
+
 	if rule, ok := a.rules[agent]; ok {
 		return rule
 	}
-	
+
 	// Default rule
 	return RoutingRule{
 		Agent:         agent,
@@ -155,13 +149,13 @@ func (a *AgentBifrost) SetRule(rule RoutingRule) {
 func (a *AgentBifrost) getOrCreateSession(agent string) string {
 	a.sessionsMut.Lock()
 	defer a.sessionsMut.Unlock()
-	
+
 	for id, sess := range a.sessions {
 		if sess.Agent == agent && time.Since(sess.Started) < time.Hour {
 			return id
 		}
 	}
-	
+
 	// Create new session
 	id := fmt.Sprintf("sess_%d", time.Now().UnixNano())
 	a.sessions[id] = &AgentSession{
@@ -195,26 +189,4 @@ type Usage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
 	TotalTokens     int `json:"total_tokens"`
-}
-
-// ModelMetrics represents benchmark metrics for a model
-type ModelMetrics struct {
-	ModelID      string  `json:"model_id"`
-	QualityScore float64 `json:"quality_score"`
-	CostPer1K    float64 `json:"cost_per_1k"`
-	LatencyMs    int     `json:"latency_ms"`
-}
-
-// GetModelMetrics returns benchmark metrics for a model
-func (a *AgentBifrost) GetModelMetrics(modelID string) *ModelMetrics {
-	if a.benchmarks == nil {
-		return nil
-	}
-
-	return &ModelMetrics{
-		ModelID:      modelID,
-		QualityScore: a.benchmarks.GetQuality(modelID),
-		CostPer1K:    a.benchmarks.GetCost(modelID),
-		LatencyMs:    a.benchmarks.GetLatency(modelID),
-	}
 }
