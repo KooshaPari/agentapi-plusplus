@@ -13,7 +13,6 @@ import (
 
 	"github.com/coder/agentapi/internal/benchmarks"
 )
-
 // AgentBifrost is the Bifrost extension for agent-specific routing
 // It sits between thegent and cliproxy+bifrost, providing:
 // - Custom routing rules per agent
