@@ -1,6 +1,4 @@
-# agentapi
-
-Agent API Layer - Sits between thegent and cliproxy+bifrost for intelligent request routing.
+# AgentAPI++ (KooshaPari Fork)
 
 ## Problem
 
@@ -36,16 +34,78 @@ agentapi provides an intermediary layer that:
 # Build
 go build -o agentapi ./cmd/agentapi
 
-# Run
-./agentapi --port 8318 --cliproxy http://127.0.0.1:8317
+# Or build from source
+go build -o agentapi main.go
+
+# Run with Claude Code
+./agentapi server -- claude
+
+# Run with Cursor
+./agentapi server -- cursor
 ```
+
+## External CLI Agent Control
+
+Control Claude Code, Cursor, Aider, Codex and other agents via HTTP API:
+
+```bash
+# Send message
+curl -X POST http://localhost:3284/api/v0/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"role": "user", "content": "Hello"}], "agent": "claude"}'
+
+# List agents
+curl http://localhost:3284/api/v0/agents
+
+# Get session
+curl http://localhost:3284/api/v0/sessions/{id}
+```
+
+### Agent Selection
+
+```bash
+# Claude Code (default)
+./agentapi server -- claude
+
+# Cursor
+./agentapi server -- cursor
+
+# Aider
+./agentapi server -- aider
+
+# Codex (requires --type flag)
+./agentapi server --type=codex -- codex
+```
+
+## Supported Agents
+
+| Agent | Flag | Type | Description |
+|-------|------|------|-------------|
+| Claude Code | `claude` | auto | Anthropic's CLI |
+| Cursor | `cursor` | auto | Cursor IDE agent |
+| Aider | `aider` | auto | AI pair programming |
+| Codex | `codex` | explicit | OpenAI's coding agent |
+| Goose | `goose` | auto | Independent agent |
+| Gemini CLI | `gemini` | explicit | Google's CLI |
+| GitHub Copilot | `github-copilot` | explicit | GitHub's CLI |
+| Amazon Q | `amazon-q` | explicit | AWS developer agent |
+| Sourcegraph Amp | `amp` | explicit | Sourcegraph's agent |
+| Auggie | `auggie` | explicit | Augment Code's agent |
+
+## Documentation
+
+- `docs/api/` - API endpoint reference
+- `docs/tutorials/` - Step-by-step guides
+- `docs/how-to/` - Common tasks
+- `docs/explanation/` - Architecture deep dives
 
 ## Environment
 
 ```bash
-# Required environment variables
+export AGENTAPI_PORT=3284
+export AGENTAPI_MODEL=claude-3-5-sonnet-20241022
+export AGENTAPI_TIMEOUT=300
 export CLIPROXY_URL="http://localhost:8317"
-export AGENTAPI_PORT="8318"
 ```
 
 ---
@@ -80,6 +140,8 @@ export AGENTAPI_PORT="8318"
 | Logging | zerolog | fmt.Print |
 | CLI | cobra | manual flag parsing |
 | Config | viper | manual env parsing |
+| Terminal emulation | tty | raw os/exec |
+| Testing | testify | manual assertions |
 
 ---
 
@@ -90,6 +152,13 @@ export AGENTAPI_PORT="8318"
 - Max function: 40 lines
 - No placeholder TODOs in committed code
 
+### Go-Specific Rules
+
+- Use `go fmt` for formatting
+- Use `go vet` for linting
+- Use `golangci-lint` for comprehensive linting
+- All public APIs must have godoc comments
+
 ---
 
 ## Verifiable Constraints
@@ -98,45 +167,43 @@ export AGENTAPI_PORT="8318"
 |--------|-----------|-------------|
 | Tests | 80% coverage | CI gate |
 | Lint | 0 errors | golangci-lint |
+| Security | 0 critical | trivy scan |
 
 ---
 
-## Endpoints
+## Domain-Specific Patterns
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/v1/chat/completions` | POST | Chat with agent routing |
-| `/admin/rules` | GET | List routing rules |
-| `/admin/rules` | POST | Set routing rule |
-| `/admin/sessions` | GET | List active sessions |
+### What AgentAPI++ Is
+
+AgentAPI++ is an **HTTP API gateway** for controlling CLI-based AI coding agents. The core domain is: provide a unified HTTP interface to spawn, control, and interact with any CLI agent through terminal emulation.
+
+### Key Interfaces
+
+| Interface | Responsibility | Location |
+|-----------|---------------|----------|
+| **HTTP Server** | REST API for agent control | `lib/httpapi/` |
+| **Terminal Emulator** | PTY management | `lib/termexec/` |
+| **Output Parser** | Agent message extraction | `lib/screentracker/` |
+| **Message Formatter** | Agent-specific formatting | `lib/msgfmt/` |
+
+### Message Flow
+
+```
+1. HTTP Request → API Handler
+2. API Handler → Terminal Input
+3. Terminal Emulator → Agent Process
+4. Output Parser ← Agent Output
+5. SSE/Response ← Formatted Message
+```
+
+### Common Anti-Patterns to Avoid
+
+- **Blocking on agent output** -- Use streaming/SSE instead
+- **Hardcoded timeouts** -- Use configurable timeouts with env vars
+- **Missing agent type handling** -- Each agent has different output formats
+- **No session state** -- Agents maintain stateful conversations
 
 ---
-
-## Agent Support
-
-| Agent | Preferred Model | Fallback |
-|-------|----------------|----------|
-| claude | claude-3-5-sonnet | gpt-4o |
-| cursor | gpt-4o | claude-3-5-sonnet |
-| codex | gpt-4o | claude-3-opus |
-| droid | claude-3-haiku | gpt-4o-mini |
-
-## Supported Agents
-
-| Agent | Type | Status |
-|-------|------|--------|
-| Claude Code | claude | ✅ |
-| Amazon Q | amazon-q | ✅ |
-| Opencode | opencode | ✅ |
-| Goose | goose | ✅ |
-| Aider | aider | ✅ |
-| Gemini CLI | gemini | ✅ |
-| GitHub Copilot | github-copilot | ✅ |
-| Sourcegraph Amp | amp | ✅ |
-| Codex | codex | ✅ |
-| Auggie | auggie | ✅ |
-| Cursor | cursor | ✅ |
 
 ## Governance
 
@@ -149,35 +216,23 @@ agentapi integrates with the Kush governance system:
 
 ---
 
-## Integration
+## Kush Ecosystem
 
-### With thegent
-
-```python
-from thegent import Agent
-
-agent = Agent(
-    provider="agentapi",
-    base_url="http://localhost:8318"
-)
-```
-
-### With cliproxy
+This project is part of the Kush multi-repo system:
 
 ```
-agentapi --cliproxy http://cliproxy:8317
+kush/
+├── thegent/         # Agent orchestration
+├── agentapi++/      # HTTP API for coding agents (this repo)
+├── cliproxy++/      # LLM proxy with multi-provider support
+├── tokenledger/     # Token and cost tracking
+├── 4sgm/           # Python tooling workspace
+├── civ/             # Deterministic simulation
+├── parpour/         # Spec-first planning
+└── pheno-sdk/       # Python SDK
 ```
 
 ---
-
-## Fork Differences
-
-This fork includes:
-- Custom message formatters for Kush agents
-- MCP server integration
-- cliproxy routing integration
-- Enhanced session management
-- Bifrost extension for agent-specific routing
 
 ## License
 
