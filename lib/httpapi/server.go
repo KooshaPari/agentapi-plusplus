@@ -385,11 +385,11 @@ func (s *Server) registerRoutes() {
 	huma.Get(s.api, "/messages", s.getMessages, func(o *huma.Operation) {
 		o.Description = "Returns a list of messages representing the conversation history with the agent. Supports ?after=<id> and ?limit=<n> query parameters for pagination."
 	})
+
 	// GET /messages/count endpoint
 	huma.Get(s.api, "/messages/count", s.getMessagesCount, func(o *huma.Operation) {
 		o.Description = "Returns the count of messages in the conversation."
 	})
-
 
 	// POST /message endpoint
 	huma.Post(s.api, "/message", s.createMessage, func(o *huma.Operation) {
