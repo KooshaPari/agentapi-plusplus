@@ -365,6 +365,11 @@ func (s *Server) registerRoutes() {
 		o.Description = "Health check endpoint for load balancers."
 	})
 
+	// GET /config endpoint
+	huma.Get(s.api, "/config", s.getConfig, func(o *huma.Operation) {
+		o.Description = "Returns the server configuration."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -421,7 +426,6 @@ func (s *Server) registerRoutes() {
 	s.registerStaticFileRoutes()
 }
 
-<<<<<<< HEAD
 // getLogs handles GET /logs
 func (s *Server) getLogs(ctx context.Context, input *struct{}) (*LogsResponse, error) {
 	resp := &LogsResponse{}
@@ -452,6 +456,14 @@ func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, e
 func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthResponse, error) {
 	resp := &HealthResponse{}
 	resp.Body.Status = "ok"
+	return resp, nil
+}
+
+// getConfig handles GET /config
+func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigResponse, error) {
+	resp := &ConfigResponse{}
+	resp.Body.AgentType = string(s.agentType)
+	resp.Body.Port = s.port
 	return resp, nil
 }
 
