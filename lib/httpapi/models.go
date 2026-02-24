@@ -91,6 +91,9 @@ type MessagesResponse struct {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1bc5ee9 (feat: add DELETE /messages to clear history (#15))
 // MessagesClearResponse represents the response after clearing messages
 type MessagesClearResponse struct {
 	Body struct {
@@ -99,6 +102,7 @@ type MessagesClearResponse struct {
 	}
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> c104df8 (feat: add /messages/count endpoint (#14))
 // MessagesCountResponse represents the message count
@@ -110,6 +114,8 @@ type MessagesCountResponse struct {
 
 =======
 >>>>>>> 672f6c4 (feat: add /ready endpoint for Kubernetes (#16))
+=======
+>>>>>>> 1bc5ee9 (feat: add DELETE /messages to clear history (#15))
 type MessageRequestBody struct {
 	Content string      `json:"content" example:"Hello, agent!" doc:"Message content"`
 	Type    MessageType `json:"type" doc:"A 'user' type message will be logged as a user message in the conversation history and submitted to the agent. AgentAPI will wait until the agent starts carrying out the task described in the message before responding. A 'raw' type message will be written directly to the agent's terminal session as keystrokes and will not be saved in the conversation history. 'raw' messages are useful for sending escape sequences to the terminal."`
