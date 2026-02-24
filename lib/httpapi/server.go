@@ -360,13 +360,14 @@ func (s *Server) registerRoutes() {
 		o.Description = "Generate a new API key for authentication."
 	})
 
+	// GET /health endpoint - liveness probe for load balancers
+	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
+		o.Description = "Health check endpoint for load balancers."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
-	})
-	// GET /info endpoint - returns agent and server info
-	huma.Get(s.api, "/info", s.getInfo, func(o *huma.Operation) {
-		o.Description = "Returns information about the server and agent."
 	})
 
 	// GET /messages endpoint
@@ -420,6 +421,7 @@ func (s *Server) registerRoutes() {
 	s.registerStaticFileRoutes()
 }
 
+<<<<<<< HEAD
 // getLogs handles GET /logs
 func (s *Server) getLogs(ctx context.Context, input *struct{}) (*LogsResponse, error) {
 	resp := &LogsResponse{}
@@ -443,6 +445,13 @@ func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, e
 		"slashCmd":   true,
 	}
 
+	return resp, nil
+}
+
+// getHealth handles GET /health
+func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthResponse, error) {
+	resp := &HealthResponse{}
+	resp.Body.Status = "ok"
 	return resp, nil
 }
 
@@ -548,15 +557,6 @@ func (s *Server) createMessage(ctx context.Context, input *MessageRequest) (*Mes
 	case MessageTypeRaw:
 		if _, err := s.agentio.Write([]byte(input.Body.Content)); err != nil {
 			return nil, xerrors.Errorf("failed to send message: %w", err)
-		}
-	case MessageTypeCommand:
-		// Send slash command directly - add enter at the end
-		content := input.Body.Content
-		if !strings.HasSuffix(content, "\n") {
-			content += "\n"
-		}
-		if _, err := s.agentio.Write([]byte(content)); err != nil {
-			return nil, xerrors.Errorf("failed to send command: %w", err)
 		}
 	}
 
