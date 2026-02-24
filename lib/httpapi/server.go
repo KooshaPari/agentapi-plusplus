@@ -350,10 +350,14 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 
 // registerRoutes sets up all API endpoints
 func (s *Server) registerRoutes() {
-	// GET /health endpoint - liveness probe for load balancers
-	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
-		o.Description = "Health check endpoint for load balancers."
-	})
+		// GET /health endpoint - liveness probe for load balancers
+		huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
+			o.Description = "Health check endpoint for load balancers."
+		})
+		// GET /version endpoint
+		huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
+			o.Description = "Returns the server version."
+		})
 
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
@@ -414,6 +418,13 @@ func (s *Server) registerRoutes() {
 func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthResponse, error) {
 	resp := &HealthResponse{}
 	resp.Body.Status = "ok"
+	return resp, nil
+}
+
+// getVersion handles GET /version
+func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
+	resp := &VersionResponse{}
+	resp.Body.Version = version.Version
 	return resp, nil
 }
 
