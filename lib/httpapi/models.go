@@ -25,12 +25,27 @@ func (m MessageType) Schema(r huma.Registry) *huma.Schema {
 	return util.OpenAPISchema(r, "MessageType", MessageTypeValues)
 }
 
+// VersionResponse represents the version info
+type VersionResponse struct {
+	Body struct {
+		Version string `json:"version" doc:"AgentAPI version"`
+	}
+}
+
 // Message represents a message
 type Message struct {
 	Id      int                 `json:"id" doc:"Unique identifier for the message. This identifier also represents the order of the message in the conversation history."`
 	Content string              `json:"content" example:"Hello world" doc:"Message content. The message is formatted as it appears in the agent's terminal session, meaning that, by default, it consists of lines of text with 80 characters per line."`
 	Role    st.ConversationRole `json:"role" doc:"Role of the message author"`
 	Time    time.Time           `json:"time" doc:"Timestamp of the message"`
+}
+
+// ConfigResponse represents the server configuration
+type ConfigResponse struct {
+	Body struct {
+		AgentType string `json:"agent_type" doc:"Type of the agent"`
+		Port      int    `json:"port" doc:"Server port"`
+	}
 }
 
 // StatusResponse represents the server status
