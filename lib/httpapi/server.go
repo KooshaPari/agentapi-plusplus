@@ -354,33 +354,21 @@ func (s *Server) registerRoutes() {
 	huma.Get(s.api, "/logs", s.getLogs, func(o *huma.Operation) {
 		o.Description = "Returns server logs."
 	})
-
-	// POST /api-key endpoint
 	huma.Post(s.api, "/api-key", s.generateAPIKey, func(o *huma.Operation) {
 		o.Description = "Generate a new API key for authentication."
 	})
-
-	// GET /health endpoint
 	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
 		o.Description = "Health check endpoint for load balancers."
 	})
-
-	// GET /config endpoint
 	huma.Get(s.api, "/config", s.getConfig, func(o *huma.Operation) {
 		o.Description = "Returns the server configuration."
 	})
-
-	// GET /version endpoint
 	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
 		o.Description = "Returns the server version."
 	})
-
-	// GET /ready endpoint
 	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
 		o.Description = "Readiness probe for Kubernetes."
 	})
-
-	// GET /rate-limit endpoint
 	huma.Get(s.api, "/rate-limit", s.getRateLimit, func(o *huma.Operation) {
 		o.Description = "Returns rate limit status."
 	})
@@ -398,6 +386,11 @@ func (s *Server) registerRoutes() {
 	// GET /messages/count endpoint
 	huma.Get(s.api, "/messages/count", s.getMessagesCount, func(o *huma.Operation) {
 		o.Description = "Returns the count of messages in the conversation."
+	})
+
+	// DELETE /messages endpoint - clear all messages
+	huma.Delete(s.api, "/messages", s.clearMessages, func(o *huma.Operation) {
+		o.Description = "Clear all messages from conversation history."
 	})
 
 	// POST /message endpoint
@@ -447,11 +440,9 @@ func (s *Server) getLogs(ctx context.Context, input *struct{}) (*LogsResponse, e
 	return resp, nil
 }
 
-// getInfo handles GET /info
 func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
 	resp := &InfoResponse{}
 	resp.Body.Version = version.Version
 	resp.Body.AgentType = s.agentType
@@ -462,18 +453,15 @@ func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, e
 		"pagination": true,
 		"slashCmd":   true,
 	}
-
 	return resp, nil
 }
 
-// getHealth handles GET /health
 func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthResponse, error) {
 	resp := &HealthResponse{}
 	resp.Body.Status = "ok"
 	return resp, nil
 }
 
-// getConfig handles GET /config
 func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigResponse, error) {
 	resp := &ConfigResponse{}
 	resp.Body.AgentType = string(s.agentType)
@@ -481,21 +469,18 @@ func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigRespons
 	return resp, nil
 }
 
-// getVersion handles GET /version
 func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
 	resp := &VersionResponse{}
 	resp.Body.Version = version.Version
 	return resp, nil
 }
 
-// getReady handles GET /ready
 func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
 	resp := &ReadyResponse{}
 	resp.Body.Ready = true
 	return resp, nil
 }
 
-// getRateLimit handles GET /rate-limit
 func (s *Server) getRateLimit(ctx context.Context, input *struct{}) (*RateLimitResponse, error) {
 	resp := &RateLimitResponse{}
 	resp.Body.Enabled = false
@@ -582,11 +567,9 @@ func (s *Server) clearMessages(ctx context.Context, input *struct{}) (*MessagesC
 	return resp, nil
 }
 
-// getMessagesCount handles GET /messages/count
 func (s *Server) getMessagesCount(ctx context.Context, input *struct{}) (*MessagesCountResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
 	resp := &MessagesCountResponse{}
 	resp.Body.Count = len(s.conversation.Messages())
 	return resp, nil
