@@ -350,6 +350,11 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 
 // registerRoutes sets up all API endpoints
 func (s *Server) registerRoutes() {
+	// GET /version endpoint
+	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
+		o.Description = "Returns the server version."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -399,6 +404,13 @@ func (s *Server) registerRoutes() {
 
 	// Serve static files for the chat interface under /chat
 	s.registerStaticFileRoutes()
+}
+
+// getVersion handles GET /version
+func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
+	resp := &VersionResponse{}
+	resp.Body.Version = version.Version
+	return resp, nil
 }
 
 // getStatus handles GET /status
