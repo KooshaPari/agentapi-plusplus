@@ -390,7 +390,6 @@ func (s *Server) registerRoutes() {
 		o.Description = "Returns the count of messages in the conversation."
 	})
 
-
 	// POST /message endpoint
 	huma.Post(s.api, "/message", s.createMessage, func(o *huma.Operation) {
 		o.Description = "Send a message to the agent. For messages of type 'user', the agent's status must be 'stable' for the operation to complete successfully. Otherwise, this endpoint will return an error."

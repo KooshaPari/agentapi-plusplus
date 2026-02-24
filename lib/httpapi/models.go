@@ -77,6 +77,7 @@ type MessagesResponse struct {
 	}
 }
 
+<<<<<<< HEAD
 // MessagesClearResponse represents the response after clearing messages
 type MessagesClearResponse struct {
 	Body struct {
@@ -85,6 +86,8 @@ type MessagesClearResponse struct {
 	}
 }
 
+=======
+>>>>>>> c104df8 (feat: add /messages/count endpoint (#14))
 // MessagesCountResponse represents the message count
 type MessagesCountResponse struct {
 	Body struct {
