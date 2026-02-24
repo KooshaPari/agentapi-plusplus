@@ -56,6 +56,13 @@ type ConfigResponse struct {
 	}
 }
 
+// HealthResponse represents the health check response
+type HealthResponse struct {
+	Body struct {
+		Status string `json:"status" doc:"Health status"`
+	}
+}
+
 // StatusResponse represents the server status
 type StatusResponse struct {
 	Body struct {
