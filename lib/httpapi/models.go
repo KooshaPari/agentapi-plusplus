@@ -34,6 +34,7 @@ type Message struct {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // LogsResponse represents server logs
 type LogsResponse struct {
 	Body struct {
@@ -54,8 +55,13 @@ type ConfigResponse struct {
 // ReadyResponse represents the readiness check response
 type ReadyResponse struct {
 >>>>>>> 672f6c4 (feat: add /ready endpoint for Kubernetes (#16))
+=======
+// RateLimitResponse represents rate limit status
+type RateLimitResponse struct {
+>>>>>>> b81e023 (feat: add rate limiting endpoint (#19))
 	Body struct {
-		Ready bool `json:"ready" doc:"Whether the server is ready"`
+		Enabled  bool `json:"enabled" doc:"Whether rate limiting is enabled"`
+		Requests int  `json:"requests" doc:"Requests per minute limit"`
 	}
 }
 

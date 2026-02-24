@@ -355,12 +355,12 @@ func (s *Server) registerRoutes() {
 		o.Description = "Returns server logs."
 	})
 
-	// POST /api-key endpoint - generate or retrieve API key
+	// POST /api-key endpoint
 	huma.Post(s.api, "/api-key", s.generateAPIKey, func(o *huma.Operation) {
 		o.Description = "Generate a new API key for authentication."
 	})
 
-	// GET /health endpoint - liveness probe for load balancers
+	// GET /health endpoint
 	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
 		o.Description = "Health check endpoint for load balancers."
 	})
@@ -375,9 +375,14 @@ func (s *Server) registerRoutes() {
 		o.Description = "Returns the server version."
 	})
 
-	// GET /ready endpoint - readiness probe
+	// GET /ready endpoint
 	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
 		o.Description = "Readiness probe for Kubernetes."
+	})
+
+	// GET /rate-limit endpoint
+	huma.Get(s.api, "/rate-limit", s.getRateLimit, func(o *huma.Operation) {
+		o.Description = "Returns rate limit status."
 	})
 
 	// GET /status endpoint
@@ -487,6 +492,14 @@ func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionRespo
 func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
 	resp := &ReadyResponse{}
 	resp.Body.Ready = true
+	return resp, nil
+}
+
+// getRateLimit handles GET /rate-limit
+func (s *Server) getRateLimit(ctx context.Context, input *struct{}) (*RateLimitResponse, error) {
+	resp := &RateLimitResponse{}
+	resp.Body.Enabled = false
+	resp.Body.Requests = 100
 	return resp, nil
 }
 
