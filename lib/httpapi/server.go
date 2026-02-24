@@ -436,48 +436,51 @@ func (s *Server) getStatus(ctx context.Context, input *struct{}) (*StatusRespons
 	return resp, nil
 }
 
-// MessagesFilter contains pagination options
-type MessagesFilter struct {
-	Offset *int `query:"offset" json:"offset" minimum:"0" doc:"Offset for pagination"`
-	Limit  *int `query:"limit" json:"limit" minimum:"1" maximum:"1000" doc:"Limit for pagination"`
-}
-
 // getMessages handles GET /messages
-func (s *Server) getMessages(ctx context.Context, input *MessagesFilter) (*MessagesResponse, error) {
+//
+//	@param after (query) int "Return messages after this ID"
+//	@param limit (query) int "Limit number of messages returned"
+func (s *Server) getMessages(ctx context.Context, input *struct {
+	After *int `json:"after,optional"`
+	Limit *int `json:"limit,optional"`
+}) (*MessagesResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	allMsgs := s.conversation.Messages()
+	allMessages := s.conversation.Messages()
 
-	offset, limit := 0, len(allMsgs)
-	if input != nil {
-		if input.Offset != nil && *input.Offset > 0 {
-			offset = *input.Offset
+	// Filter by 'after' parameter
+	messages := allMessages
+	if input.After != nil {
+		afterID := *input.After
+		filtered := make([]st.ConversationMessage, 0)
+		for _, msg := range allMessages {
+			if msg.Id > afterID {
+				filtered = append(filtered, msg)
+			}
 		}
-		if input.Limit != nil && *input.Limit > 0 {
-			limit = *input.Limit
-		}
+		messages = filtered
 	}
 
-	if offset > len(allMsgs) {
-		offset = len(allMsgs)
-	}
-	if limit > len(allMsgs)-offset {
-		limit = len(allMsgs) - offset
+	// Apply limit
+	if input.Limit != nil && *input.Limit > 0 {
+		limit := *input.Limit
+		if len(messages) > limit {
+			messages = messages[:limit]
+		}
 	}
 
 	resp := &MessagesResponse{}
-	resp.Body.Messages = make([]Message, limit)
-	for i := offset; i < offset+limit; i++ {
-		msg := allMsgs[i]
-		resp.Body.Messages[i-offset] = Message{
+	resp.Body.Messages = make([]Message, len(messages))
+	for i, msg := range messages {
+		resp.Body.Messages[i] = Message{
 			Id:      msg.Id,
 			Role:    msg.Role,
 			Content: msg.Message,
 			Time:    msg.Time,
 		}
 	}
-	
+
 	return resp, nil
 }
 
