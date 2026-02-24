@@ -361,6 +361,11 @@ func (s *Server) registerRoutes() {
 		o.Description = "Returns a list of messages representing the conversation history with the agent. Supports ?after=<id> and ?limit=<n> query parameters for pagination."
 	})
 
+	// GET /messages/count endpoint
+	huma.Get(s.api, "/messages/count", s.getMessagesCount, func(o *huma.Operation) {
+		o.Description = "Returns the count of messages in the conversation."
+	})
+
 	// POST /message endpoint
 	huma.Post(s.api, "/message", s.createMessage, func(o *huma.Operation) {
 		o.Description = "Send a message to the agent. For messages of type 'user', the agent's status must be 'stable' for the operation to complete successfully. Otherwise, this endpoint will return an error."
@@ -464,6 +469,16 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 		}
 	}
 
+	return resp, nil
+}
+
+// getMessagesCount handles GET /messages/count
+func (s *Server) getMessagesCount(ctx context.Context, input *struct{}) (*MessagesCountResponse, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	resp := &MessagesCountResponse{}
+	resp.Body.Count = len(s.conversation.Messages())
 	return resp, nil
 }
 
