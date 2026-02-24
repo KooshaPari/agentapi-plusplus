@@ -33,6 +33,13 @@ type Message struct {
 	Time    time.Time           `json:"time" doc:"Timestamp of the message"`
 }
 
+// ReadyResponse represents the readiness check response
+type ReadyResponse struct {
+	Body struct {
+		Ready bool `json:"ready" doc:"Whether the server is ready"`
+	}
+}
+
 // StatusResponse represents the server status
 type StatusResponse struct {
 	Body struct {

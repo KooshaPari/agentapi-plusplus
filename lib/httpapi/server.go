@@ -350,6 +350,11 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 
 // registerRoutes sets up all API endpoints
 func (s *Server) registerRoutes() {
+	// GET /ready endpoint - readiness probe
+	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
+		o.Description = " Readiness probe for Kubernetes."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -399,6 +404,13 @@ func (s *Server) registerRoutes() {
 
 	// Serve static files for the chat interface under /chat
 	s.registerStaticFileRoutes()
+}
+
+// getReady handles GET /ready
+func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
+	resp := &ReadyResponse{}
+	resp.Body.Ready = true
+	return resp, nil
 }
 
 // getStatus handles GET /status
