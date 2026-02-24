@@ -548,6 +548,15 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 
 	return resp, nil
 }
+			Id:      msg.Id,
+			Role:    msg.Role,
+			Content: msg.Message,
+			Time:    msg.Time,
+		}
+	}
+
+	return resp, nil
+}
 
 // clearMessages handles DELETE /messages
 func (s *Server) clearMessages(ctx context.Context, input *struct{}) (*MessagesClearResponse, error) {
