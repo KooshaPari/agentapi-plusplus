@@ -356,6 +356,11 @@ func sseMiddleware(ctx huma.Context, next func(huma.Context)) {
 
 // registerRoutes sets up all API endpoints
 func (s *Server) registerRoutes() {
+	// GET /ready endpoint - readiness probe
+	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
+		o.Description = "Readiness probe for Kubernetes."
+	})
+
 	// GET /logs endpoint
 	huma.Get(s.api, "/logs", s.getLogs, func(o *huma.Operation) {
 		o.Description = "Returns server logs."
@@ -497,6 +502,13 @@ func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, e
 		"pagination":  true,
 		"slashCmd":    true,
 	}
+	return resp, nil
+}
+
+// getReady handles GET /ready
+func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
+	resp := &ReadyResponse{}
+	resp.Body.Ready = true
 	return resp, nil
 }
 
