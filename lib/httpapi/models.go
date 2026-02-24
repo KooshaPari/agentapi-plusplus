@@ -36,6 +36,7 @@ type Message struct {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // LogsResponse represents server logs
 type LogsResponse struct {
 	Body struct {
@@ -64,9 +65,12 @@ type RateLimitResponse struct {
 // RateLimitResponse represents rate limit status
 type RateLimitResponse struct {
 >>>>>>> d6b99b8 (feat: add rate limiting endpoint)
+=======
+// LogsResponse represents server logs
+type LogsResponse struct {
+>>>>>>> cacd4d3 (feat: add logging endpoint (#20))
 	Body struct {
-		Enabled  bool `json:"enabled" doc:"Whether rate limiting is enabled"`
-		Requests int  `json:"requests" doc:"Requests per minute limit"`
+		Logs []string `json:"logs" doc:"Server logs"`
 	}
 }
 
