@@ -518,13 +518,21 @@ func (s *Server) getStatus(ctx context.Context, input *struct{}) (*StatusRespons
 	return resp, nil
 }
 
+// MessagesFilter contains pagination options
+type MessagesFilter struct {
+	Offset *int `query:"offset" json:"offset" minimum:"0" doc:"Offset for pagination"`
+	Limit  *int `query:"limit" json:"limit" minimum:"1" maximum:"1000" doc:"Limit for pagination"`
+}
+
 // getMessages handles GET /messages
 //
 //	@param after (query) int "Return messages after this ID"
+//	@param offset (query) int "Skip the first N messages"
 //	@param limit (query) int "Limit number of messages returned"
 func (s *Server) getMessages(ctx context.Context, input *struct {
-	After *int `json:"after,optional"`
-	Limit *int `json:"limit,optional"`
+	After  *int `json:"after,optional"`
+	Offset *int `json:"offset,optional"`
+	Limit  *int `json:"limit,optional"`
 }) (*MessagesResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -542,6 +550,16 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 			}
 		}
 		messages = filtered
+	}
+
+	// Apply offset to the current message window
+	if input.Offset != nil && *input.Offset > 0 {
+		offset := *input.Offset
+		if offset >= len(messages) {
+			messages = []st.ConversationMessage{}
+		} else {
+			messages = messages[offset:]
+		}
 	}
 
 	// Apply limit
@@ -562,7 +580,7 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 			Time:    msg.Time,
 		}
 	}
-
+	
 	return resp, nil
 }
 
