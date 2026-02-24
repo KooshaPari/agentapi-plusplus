@@ -436,6 +436,12 @@ func (s *Server) getStatus(ctx context.Context, input *struct{}) (*StatusRespons
 	return resp, nil
 }
 
+// MessagesFilter contains pagination options
+type MessagesFilter struct {
+	Offset *int `query:"offset" json:"offset" minimum:"0" doc:"Offset for pagination"`
+	Limit  *int `query:"limit" json:"limit" minimum:"1" maximum:"1000" doc:"Limit for pagination"`
+}
+
 // getMessages handles GET /messages
 //
 //	@param after (query) int "Return messages after this ID"
@@ -480,7 +486,7 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 			Time:    msg.Time,
 		}
 	}
-
+	
 	return resp, nil
 }
 
