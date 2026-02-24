@@ -370,6 +370,11 @@ func (s *Server) registerRoutes() {
 		o.Description = "Returns the server configuration."
 	})
 
+	// GET /version endpoint
+	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
+		o.Description = "Returns the server version."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -464,6 +469,13 @@ func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigRespons
 	resp := &ConfigResponse{}
 	resp.Body.AgentType = string(s.agentType)
 	resp.Body.Port = s.port
+	return resp, nil
+}
+
+// getVersion handles GET /version
+func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
+	resp := &VersionResponse{}
+	resp.Body.Version = version.Version
 	return resp, nil
 }
 
