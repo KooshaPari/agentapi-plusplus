@@ -375,6 +375,11 @@ func (s *Server) registerRoutes() {
 	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
 		o.Description = "Health check endpoint for load balancers."
 	})
+	// GET /version endpoint
+	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
+		o.Description = "Returns the server version."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -465,6 +470,13 @@ func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthRespons
 	return resp, nil
 }
 
+// getVersion handles GET /version
+func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
+	resp := &VersionResponse{}
+	resp.Body.Version = version.Version
+	return resp, nil
+}
+
 // getInfo handles GET /info
 func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, error) {
 	s.mu.RLock()
@@ -539,15 +551,6 @@ func (s *Server) getMessages(ctx context.Context, input *struct {
 	resp.Body.Messages = make([]Message, len(messages))
 	for i, msg := range messages {
 		resp.Body.Messages[i] = Message{
-			Id:      msg.Id,
-			Role:    msg.Role,
-			Content: msg.Message,
-			Time:    msg.Time,
-		}
-	}
-
-	return resp, nil
-}
 			Id:      msg.Id,
 			Role:    msg.Role,
 			Content: msg.Message,
