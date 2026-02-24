@@ -399,6 +399,11 @@ func (s *Server) registerRoutes() {
 	huma.Delete(s.api, "/messages", s.clearMessages, func(o *huma.Operation) {
 		o.Description = "Clear all messages from conversation history."
 	})
+	// GET /messages/count endpoint
+	huma.Get(s.api, "/messages/count", s.getMessagesCount, func(o *huma.Operation) {
+		o.Description = "Returns the count of messages in the conversation."
+	})
+
 
 	// POST /message endpoint
 	huma.Post(s.api, "/message", s.createMessage, func(o *huma.Operation) {
@@ -571,6 +576,16 @@ func (s *Server) clearMessages(ctx context.Context, input *struct{}) (*MessagesC
 	s.conversation.ClearMessages()
 	resp.Body.Ok = true
 	resp.Body.Count = count
+	return resp, nil
+}
+
+// getMessagesCount handles GET /messages/count
+func (s *Server) getMessagesCount(ctx context.Context, input *struct{}) (*MessagesCountResponse, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	resp := &MessagesCountResponse{}
+	resp.Body.Count = len(s.conversation.Messages())
 	return resp, nil
 }
 
