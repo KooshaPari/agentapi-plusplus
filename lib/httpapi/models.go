@@ -35,10 +35,17 @@ type Message struct {
 	Time    time.Time           `json:"time" doc:"Timestamp of the message"`
 }
 
+<<<<<<< HEAD
 // LogsResponse represents server logs
 type LogsResponse struct {
 	Body struct {
 		Logs []string `json:"logs" doc:"Server logs"`
+=======
+// HealthResponse represents the health check response
+type HealthResponse struct {
+	Body struct {
+		Status string `json:"status" doc:"Health status"`
+>>>>>>> 9843f48 (feat: add /health endpoint for load balancer probes (#11))
 	}
 }
 
