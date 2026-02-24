@@ -25,13 +25,6 @@ func (m MessageType) Schema(r huma.Registry) *huma.Schema {
 	return util.OpenAPISchema(r, "MessageType", MessageTypeValues)
 }
 
-// VersionResponse represents the version info
-type VersionResponse struct {
-	Body struct {
-		Version string `json:"version" doc:"AgentAPI version"`
-	}
-}
-
 // Message represents a message
 type Message struct {
 	Id      int                 `json:"id" doc:"Unique identifier for the message. This identifier also represents the order of the message in the conversation history."`
@@ -40,6 +33,7 @@ type Message struct {
 	Time    time.Time           `json:"time" doc:"Timestamp of the message"`
 }
 
+<<<<<<< HEAD
 // LogsResponse represents server logs
 type LogsResponse struct {
 	Body struct {
@@ -56,9 +50,12 @@ type HealthResponse struct {
 
 // ConfigResponse represents the server configuration
 type ConfigResponse struct {
+=======
+// ReadyResponse represents the readiness check response
+type ReadyResponse struct {
+>>>>>>> 672f6c4 (feat: add /ready endpoint for Kubernetes (#16))
 	Body struct {
-		AgentType string `json:"agent_type" doc:"Type of the agent"`
-		Port      int    `json:"port" doc:"Server port"`
+		Ready bool `json:"ready" doc:"Whether the server is ready"`
 	}
 }
 
@@ -78,6 +75,7 @@ type MessagesResponse struct {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // MessagesClearResponse represents the response after clearing messages
 type MessagesClearResponse struct {
 	Body struct {
@@ -95,6 +93,8 @@ type MessagesCountResponse struct {
 	}
 }
 
+=======
+>>>>>>> 672f6c4 (feat: add /ready endpoint for Kubernetes (#16))
 type MessageRequestBody struct {
 	Content string      `json:"content" example:"Hello, agent!" doc:"Message content"`
 	Type    MessageType `json:"type" doc:"A 'user' type message will be logged as a user message in the conversation history and submitted to the agent. AgentAPI will wait until the agent starts carrying out the task described in the message before responding. A 'raw' type message will be written directly to the agent's terminal session as keystrokes and will not be saved in the conversation history. 'raw' messages are useful for sending escape sequences to the terminal."`
