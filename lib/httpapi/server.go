@@ -375,6 +375,11 @@ func (s *Server) registerRoutes() {
 		o.Description = "Returns the server version."
 	})
 
+	// GET /ready endpoint - readiness probe
+	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
+		o.Description = "Readiness probe for Kubernetes."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -384,11 +389,6 @@ func (s *Server) registerRoutes() {
 	// Query params: after (int) - return messages after this ID, limit (int) - limit results
 	huma.Get(s.api, "/messages", s.getMessages, func(o *huma.Operation) {
 		o.Description = "Returns a list of messages representing the conversation history with the agent. Supports ?after=<id> and ?limit=<n> query parameters for pagination."
-	})
-
-	// GET /messages/count endpoint
-	huma.Get(s.api, "/messages/count", s.getMessagesCount, func(o *huma.Operation) {
-		o.Description = "Returns the count of messages in the conversation."
 	})
 
 	// POST /message endpoint
@@ -476,6 +476,13 @@ func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigRespons
 func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionResponse, error) {
 	resp := &VersionResponse{}
 	resp.Body.Version = version.Version
+	return resp, nil
+}
+
+// getReady handles GET /ready
+func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
+	resp := &ReadyResponse{}
+	resp.Body.Ready = true
 	return resp, nil
 }
 

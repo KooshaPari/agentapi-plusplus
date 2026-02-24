@@ -25,13 +25,6 @@ func (m MessageType) Schema(r huma.Registry) *huma.Schema {
 	return util.OpenAPISchema(r, "MessageType", MessageTypeValues)
 }
 
-// VersionResponse represents the version info
-type VersionResponse struct {
-	Body struct {
-		Version string `json:"version" doc:"AgentAPI version"`
-	}
-}
-
 // Message represents a message
 type Message struct {
 	Id      int                 `json:"id" doc:"Unique identifier for the message. This identifier also represents the order of the message in the conversation history."`
@@ -59,6 +52,13 @@ type ConfigResponse struct {
 	Body struct {
 		AgentType string `json:"agent_type" doc:"Type of the agent"`
 		Port      int    `json:"port" doc:"Server port"`
+	}
+}
+
+// ReadyResponse represents the readiness check response
+type ReadyResponse struct {
+	Body struct {
+		Ready bool `json:"ready" doc:"Whether the server is ready"`
 	}
 }
 
