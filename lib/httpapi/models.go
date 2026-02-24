@@ -44,6 +44,12 @@ type Message struct {
 type HealthResponse struct {
 	Body struct {
 		Status string `json:"status" doc:"Health status"`
+}
+
+// ReadyResponse represents the readiness check response
+type ReadyResponse struct {
+	Body struct {
+		Ready bool `json:"ready" doc:"Whether the server is ready"`
 	}
 }
 

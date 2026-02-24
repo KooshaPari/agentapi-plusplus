@@ -350,14 +350,18 @@ func (s *Server) StartSnapshotLoop(ctx context.Context) {
 
 // registerRoutes sets up all API endpoints
 func (s *Server) registerRoutes() {
-		// GET /health endpoint - liveness probe for load balancers
-		huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
-			o.Description = "Health check endpoint for load balancers."
-		})
-		// GET /version endpoint
-		huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
-			o.Description = "Returns the server version."
-		})
+	// GET /health endpoint - liveness probe for load balancers
+	huma.Get(s.api, "/health", s.getHealth, func(o *huma.Operation) {
+		o.Description = "Health check endpoint for load balancers."
+	})
+	// GET /ready endpoint - readiness probe
+	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
+		o.Description = " Readiness probe for Kubernetes."
+	})
+	// GET /version endpoint
+	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
+		o.Description = "Returns the server version."
+	})
 
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
@@ -449,6 +453,13 @@ func (s *Server) getInfo(ctx context.Context, input *struct{}) (*InfoResponse, e
 		"slashCmd":    true,
 	}
 
+	return resp, nil
+}
+
+// getReady handles GET /ready
+func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
+	resp := &ReadyResponse{}
+	resp.Body.Ready = true
 	return resp, nil
 }
 
