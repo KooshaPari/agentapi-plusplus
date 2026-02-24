@@ -362,6 +362,10 @@ func (s *Server) registerRoutes() {
 	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
 		o.Description = "Returns the server version."
 	})
+	// GET /api-key endpoint - generate or retrieve API key
+	huma.Post(s.api, "/api-key", s.generateAPIKey, func(o *huma.Operation) {
+		o.Description = "Generate a new API key for authentication."
+	})
 
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
@@ -434,6 +438,17 @@ func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionRespo
 	resp := &VersionResponse{}
 	resp.Body.Version = version.Version
 	return resp, nil
+}
+
+// generateAPIKey handles POST /api-key
+func (s *Server) generateAPIKey(ctx context.Context, input *struct{}) (*APIKeyResponse, error) {
+	return &APIKeyResponse{
+		Body: struct {
+			Key string `json:"key" doc:"Generated API key placeholder"`
+		}{
+			Key: "placeholder-key",
+		},
+	}, nil
 }
 
 // getInfo handles GET /info

@@ -32,6 +32,13 @@ type VersionResponse struct {
 	}
 }
 
+// APIKeyResponse represents the API key placeholder response
+type APIKeyResponse struct {
+	Body struct {
+		Key string `json:"key" doc:"Generated API key placeholder"`
+	}
+}
+
 // Message represents a message
 type Message struct {
 	Id      int                 `json:"id" doc:"Unique identifier for the message. This identifier also represents the order of the message in the conversation history."`
