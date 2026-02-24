@@ -164,7 +164,9 @@ func FindNewMessage(oldScreen, newScreen string, agentType msgfmt.AgentType) str
 	firstNonMatchingLine := len(newLines)
 	for i, line := range newLines[dynamicHeaderEnd+1:] {
 		if !oldLinesMap[line] {
-			firstNonMatchingLine = i
+			// Adjust index for the slice offset (dynamicHeaderEnd + 1)
+			// to get the correct position in the original newLines array
+			firstNonMatchingLine = i + dynamicHeaderEnd + 1
 			break
 		}
 	}
