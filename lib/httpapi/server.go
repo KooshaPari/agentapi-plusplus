@@ -380,6 +380,11 @@ func (s *Server) registerRoutes() {
 		o.Description = "Readiness probe for Kubernetes."
 	})
 
+	// GET /rate-limit endpoint
+	huma.Get(s.api, "/rate-limit", s.getRateLimit, func(o *huma.Operation) {
+		o.Description = "Returns rate limit status."
+	})
+
 	// GET /status endpoint
 	huma.Get(s.api, "/status", s.getStatus, func(o *huma.Operation) {
 		o.Description = "Returns the current status of the agent."
@@ -483,6 +488,14 @@ func (s *Server) getVersion(ctx context.Context, input *struct{}) (*VersionRespo
 func (s *Server) getReady(ctx context.Context, input *struct{}) (*ReadyResponse, error) {
 	resp := &ReadyResponse{}
 	resp.Body.Ready = true
+	return resp, nil
+}
+
+// getRateLimit handles GET /rate-limit
+func (s *Server) getRateLimit(ctx context.Context, input *struct{}) (*RateLimitResponse, error) {
+	resp := &RateLimitResponse{}
+	resp.Body.Enabled = false
+	resp.Body.Requests = 100
 	return resp, nil
 }
 
