@@ -41,6 +41,14 @@ type APIKeyResponse struct {
 	}
 }
 
+// ConfigResponse represents the server configuration
+type ConfigResponse struct {
+	Body struct {
+		AgentType string `json:"agent_type" doc:"Type of the agent"`
+		Port      int    `json:"port" doc:"Server port"`
+	}
+}
+
 // Message represents a message
 type Message struct {
 	Id      int                 `json:"id" doc:"Unique identifier for the message. This identifier also represents the order of the message in the conversation history."`

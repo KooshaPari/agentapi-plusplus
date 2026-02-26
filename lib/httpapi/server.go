@@ -358,6 +358,10 @@ func (s *Server) registerRoutes() {
 	huma.Get(s.api, "/ready", s.getReady, func(o *huma.Operation) {
 		o.Description = " Readiness probe for Kubernetes."
 	})
+	// GET /config endpoint
+	huma.Get(s.api, "/config", s.getConfig, func(o *huma.Operation) {
+		o.Description = "Returns the server configuration."
+	})
 	// GET /version endpoint
 	huma.Get(s.api, "/version", s.getVersion, func(o *huma.Operation) {
 		o.Description = "Returns the server version."
@@ -430,6 +434,14 @@ func (s *Server) registerRoutes() {
 func (s *Server) getHealth(ctx context.Context, input *struct{}) (*HealthResponse, error) {
 	resp := &HealthResponse{}
 	resp.Body.Status = "ok"
+	return resp, nil
+}
+
+// getConfig handles GET /config
+func (s *Server) getConfig(ctx context.Context, input *struct{}) (*ConfigResponse, error) {
+	resp := &ConfigResponse{}
+	resp.Body.AgentType = string(s.agentType)
+	resp.Body.Port = s.port
 	return resp, nil
 }
 
