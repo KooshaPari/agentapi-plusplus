@@ -64,5 +64,7 @@ func TestAgentMetrics(t *testing.T) {
 // TestAgentTimeout tests timeout handling
 func TestAgentTimeout(t *testing.T) {
 	timeout := 30
-	assert.Greater(t, timeout, 0)
+	if timeout <= 0 {
+		t.Fatal("expected timeout to be greater than zero")
+	}
 }

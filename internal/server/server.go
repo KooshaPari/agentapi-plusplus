@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kooshapari/agentapi/internal/routing"
+	"github.com/coder/agentapi/internal/routing"
 )
 
 // Server represents the agentapi HTTP server
@@ -59,7 +59,9 @@ func (s *Server) Shutdown() {
 	if s.server != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		s.server.Shutdown(ctx)
+		if err := s.server.Shutdown(ctx); err != nil {
+			log.Printf("failed to shutdown server: %v", err)
+		}
 	}
 }
 

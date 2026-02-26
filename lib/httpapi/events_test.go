@@ -13,8 +13,6 @@ func TestEventEmitter_Subscribe(t *testing.T) {
 
 	subscriberID, ch, initialEvents := emitter.Subscribe()
 
-	// subscriberID is an int, checking it was assigned (non-zero is valid)
-	_ = subscriberID // Just verify subscription works
 	if ch == nil {
 		t.Error("expected non-nil channel")
 	}
@@ -104,9 +102,15 @@ func TestEventEmitter_NoDuplicateStatusEvents(t *testing.T) {
 	_, ch, _ := emitter.Subscribe()
 
 	// Update to same status multiple times
-	emitter.UpdateStatusAndEmitChanges(st.ConversationStatusStable, mf.AgentTypeClaude)
-	emitter.UpdateStatusAndEmitChanges(st.ConversationStatusStable, mf.AgentTypeClaude)
-	emitter.UpdateStatusAndEmitChanges(st.ConversationStatusStable, mf.AgentTypeClaude)
+	if err := emitter.UpdateStatusAndEmitChanges(st.ConversationStatusStable, mf.AgentTypeClaude); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if err := emitter.UpdateStatusAndEmitChanges(st.ConversationStatusStable, mf.AgentTypeClaude); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if err := emitter.UpdateStatusAndEmitChanges(st.ConversationStatusStable, mf.AgentTypeClaude); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// Should only receive one event (the first change)
 	receivedCount := 0

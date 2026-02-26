@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kooshapari/agentapi/internal/routing"
+	"github.com/coder/agentapi/internal/routing"
 )
 
 func TestNewServer(t *testing.T) {
@@ -92,7 +92,9 @@ func TestChatCompletionsHandler_InvalidJSON(t *testing.T) {
 	}
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	if _, ok := response["error"]; !ok {
 		t.Fatal("Expected error field in response")
@@ -120,7 +122,9 @@ func TestChatCompletionsHandler_DefaultAgent(t *testing.T) {
 	server.chatCompletions(c)
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	// Response indicates handler processed the request
 	if w.Code != http.StatusOK && w.Code != http.StatusInternalServerError {
@@ -146,7 +150,9 @@ func TestListRulesHandler(t *testing.T) {
 	}
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	if _, ok := response["rules"]; !ok {
 		t.Fatal("Expected 'rules' field in response")
@@ -181,7 +187,9 @@ func TestSetRuleHandler(t *testing.T) {
 	}
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	if status, ok := response["status"]; !ok || status != "ok" {
 		t.Errorf("Expected status 'ok', got %v", status)
@@ -225,7 +233,9 @@ func TestListSessionsHandler(t *testing.T) {
 	}
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	if _, ok := response["sessions"]; !ok {
 		t.Fatal("Expected 'sessions' field in response")
@@ -251,7 +261,9 @@ func TestProxyHandler(t *testing.T) {
 	}
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	if proxied, ok := response["proxied"]; !ok || proxied != "test/path" {
 		t.Errorf("Expected proxied path 'test/path', got %v", proxied)
@@ -277,7 +289,9 @@ func TestProxyHandler_POSTMethod(t *testing.T) {
 	server.proxy(c)
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
 
 	if method, ok := response["method"]; !ok || method != "POST" {
 		t.Errorf("Expected method POST, got %v", method)

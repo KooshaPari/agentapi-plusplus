@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/kooshapari/agentapi/internal/routing"
-	"github.com/kooshapari/agentapi/internal/server"
+	"github.com/coder/agentapi/internal/routing"
+	"github.com/coder/agentapi/internal/server"
 )
 
 var (

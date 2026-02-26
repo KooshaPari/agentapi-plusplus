@@ -142,7 +142,7 @@ func TestForwardToCliproxy_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(RoutingResponse{
+		if err := json.NewEncoder(w).Encode(RoutingResponse{
 			ID:    "resp_123",
 			Model: "claude-3-5-sonnet-20241022",
 			Choices: []Choice{{
@@ -156,7 +156,9 @@ func TestForwardToCliproxy_Success(t *testing.T) {
 				CompletionTokens: 5,
 				TotalTokens:      15,
 			},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -198,7 +200,9 @@ func TestForwardToCliproxy_Success(t *testing.T) {
 func TestForwardToCliproxy_InvalidResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("not json"))
+		if _, err := w.Write([]byte("not json")); err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -219,7 +223,7 @@ func TestRouteRequest_WithDefaultRule(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(RoutingResponse{
+		if err := json.NewEncoder(w).Encode(RoutingResponse{
 			ID:    "resp_456",
 			Model: "claude-3-5-sonnet-20241022",
 			Choices: []Choice{{
@@ -228,7 +232,9 @@ func TestRouteRequest_WithDefaultRule(t *testing.T) {
 					Content: "Routed successfully",
 				},
 			}},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 
@@ -256,13 +262,15 @@ func TestRouteRequest_WithDefaultRule(t *testing.T) {
 func TestRouteRequest_WithCustomRule(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body map[string]interface{}
-		json.NewDecoder(r.Body).Decode(&body)
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("failed to decode request body: %v", err)
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
 		// Verify the correct model was used
-		json.NewEncoder(w).Encode(RoutingResponse{
+		if err := json.NewEncoder(w).Encode(RoutingResponse{
 			ID:    "resp_custom",
 			Model: body["model"].(string),
 			Choices: []Choice{{
@@ -271,7 +279,9 @@ func TestRouteRequest_WithCustomRule(t *testing.T) {
 					Content: "Custom routed",
 				},
 			}},
-		})
+		}); err != nil {
+			t.Fatalf("failed to encode response: %v", err)
+		}
 	}))
 	defer server.Close()
 

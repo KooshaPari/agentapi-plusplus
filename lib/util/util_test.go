@@ -2,11 +2,8 @@ package util
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
-
-	"github.com/danielgtaylor/huma/v2"
 )
 
 func TestGetUnexportedField(t *testing.T) {
@@ -85,19 +82,4 @@ func TestWaitFor_ImmediateSuccess(t *testing.T) {
 	if callCount != 1 {
 		t.Errorf("expected 1 call, got %d", callCount)
 	}
-}
-
-// mockRegistry implements huma.Registry for testing
-type mockRegistry struct{}
-
-func (m *mockRegistry) Register(t *huma.Schema, name string) *huma.Schema {
-	return t
-}
-
-func (m *mockRegistry) SchemaFromType(t reflect.Type) *huma.Schema {
-	return nil
-}
-
-func (m *mockRegistry) Map(typeName string, schema *huma.Schema) {
-	// no-op
 }
