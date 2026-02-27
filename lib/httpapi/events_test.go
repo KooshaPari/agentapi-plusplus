@@ -1,8 +1,11 @@
 package httpapi
 
 import (
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	st "github.com/coder/agentapi/lib/screentracker"
 )

@@ -491,6 +491,19 @@ func (c *PTYConversation) Messages() []ConversationMessage {
 	return c.messagesLocked()
 }
 
+func (c *PTYConversation) ClearMessages() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	c.messages = []ConversationMessage{
+		{
+			Message: "",
+			Role:    ConversationRoleAgent,
+			Time:    c.cfg.Clock.Now(),
+		},
+	}
+}
+
 // messagesLocked returns a copy of messages. Caller MUST hold c.lock.
 func (c *PTYConversation) messagesLocked() []ConversationMessage {
 	result := make([]ConversationMessage, len(c.messages))
