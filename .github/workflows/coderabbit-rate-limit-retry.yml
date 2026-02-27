@@ -8,7 +8,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  checks: write
   contents: read
   pull-requests: write
   issues: write
@@ -26,8 +25,6 @@ jobs:
             const repo = context.repo.repo;
             const STALE_MINUTES = 20;
             const BACKLOG_THRESHOLD = 10;
-            const BYPASS_LABEL = "ci:coderabbit-bypass";
-            const GATE_CHECK_NAME = "CodeRabbit Gate";
             const MARKER = "<!-- codex:coderabbit-rate-limit-retry -->";
 
             const nowMs = Date.now();
@@ -112,113 +109,45 @@ jobs:
               return ageMin < STALE_MINUTES;
             }
 
-            async function ensureBypassLabelExists() {
-              try {
-                await github.rest.issues.getLabel({
-                  owner,
-                  repo,
-                  name: BYPASS_LABEL,
-                });
-              } catch (error) {
-                if (error.status !== 404) throw error;
-                await github.rest.issues.createLabel({
-                  owner,
-                  repo,
-                  name: BYPASS_LABEL,
-                  color: "B60205",
-                  description: "Temporary bypass for CodeRabbit rate-limit under high PR backlog.",
-                });
-              }
-            }
-
-            async function hasLabel(prNumber, name) {
-              const labels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
-                owner,
-                repo,
-                issue_number: prNumber,
-                per_page: 100,
-              });
-              return labels.some((l) => l.name === name);
-            }
-
-            async function setBypassLabel(prNumber, enable) {
-              const present = await hasLabel(prNumber, BYPASS_LABEL);
-              if (enable && !present) {
-                await github.rest.issues.addLabels({
-                  owner,
-                  repo,
-                  issue_number: prNumber,
-                  labels: [BYPASS_LABEL],
-                });
-                core.notice(`PR #${prNumber}: applied label '${BYPASS_LABEL}'.`);
-              }
-              if (!enable && present) {
-                await github.rest.issues.removeLabel({
-                  owner,
-                  repo,
-                  issue_number: prNumber,
-                  name: BYPASS_LABEL,
-                });
-                core.notice(`PR #${prNumber}: removed label '${BYPASS_LABEL}'.`);
-              }
-            }
-
-            async function publishGate(pr, pass, summary) {
-              await github.rest.checks.create({
-                owner,
-                repo,
-                name: GATE_CHECK_NAME,
-                head_sha: pr.head.sha,
-                status: "completed",
-                conclusion: pass ? "success" : "failure",
-                output: {
-                  title: pass ? "CodeRabbit gate passed" : "CodeRabbit gate blocked",
-                  summary,
-                },
-              });
-            }
-
             async function processPR(pr) {
               const state = await getCodeRabbitState(pr.number);
               const ageMin = (nowMs - state.at) / 60000;
               const stateOk = state.state === "SUCCESS" || state.state === "NEUTRAL";
-              const stale = ageMin >= STALE_MINUTES;
-              const backlogHigh = openPRs.length > BACKLOG_THRESHOLD;
-              const bypassEligible = backlogHigh && stale && !stateOk;
 
-              await setBypassLabel(pr.number, bypassEligible);
-
-              if (bypassEligible && !(await hasRecentRetryComment(pr.number))) {
-                const body = [
-                  MARKER,
-                  "@coderabbitai full review",
-                  "",
-                  `Automated retrigger: backlog > ${BACKLOG_THRESHOLD}, CodeRabbit state=${state.state}, age=${ageMin.toFixed(1)}m.`,
-                ].join("\n");
-
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number: pr.number,
-                  body,
-                });
-
-                core.notice(`PR #${pr.number}: posted CodeRabbit retrigger comment.`);
+              if (stateOk || ageMin < STALE_MINUTES) {
+                core.info(`PR #${pr.number}: skip (state=${state.state}, age=${ageMin.toFixed(1)}m)`);
+                return;
               }
 
-              const gatePass = stateOk || bypassEligible;
-              const summary = [
-                `CodeRabbit state: ${state.state}`,
-                `Age minutes: ${ageMin.toFixed(1)}`,
-                `Open PR backlog: ${openPRs.length}`,
-                `Bypass eligible: ${bypassEligible}`,
+              if (await hasRecentRetryComment(pr.number)) {
+                core.info(`PR #${pr.number}: skip (recent retry comment exists)`);
+                return;
+              }
+
+              const body = [
+                MARKER,
+                "@coderabbitai full review",
+                "",
+                `Automated retrigger: backlog > ${BACKLOG_THRESHOLD}, CodeRabbit state=${state.state}, age=${ageMin.toFixed(1)}m.`,
               ].join("\n");
-              await publishGate(pr, gatePass, summary);
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr.number,
+                body,
+              });
+
+              core.notice(`PR #${pr.number}: posted CodeRabbit retrigger comment.`);
             }
 
             const openPRs = await listOpenPRs();
             core.info(`Open PR count: ${openPRs.length}`);
-            await ensureBypassLabelExists();
+
+            if (openPRs.length <= BACKLOG_THRESHOLD) {
+              core.notice(`Backlog below threshold (${BACKLOG_THRESHOLD}); no automatic retries.`);
+              return;
+            }
 
             const targetPRs = context.eventName === "pull_request_target"
               ? openPRs.filter((p) => p.number === context.payload.pull_request.number)
