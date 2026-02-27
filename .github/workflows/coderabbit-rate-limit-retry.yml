@@ -1,0 +1,158 @@
+name: coderabbit-rate-limit-retry
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  retrigger:
+    name: retrigger-coderabbit-on-rate-limit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-request CodeRabbit when backlog is high and check is stale
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const STALE_MINUTES = 20;
+            const BACKLOG_THRESHOLD = 10;
+            const MARKER = "<!-- codex:coderabbit-rate-limit-retry -->";
+
+            const nowMs = Date.now();
+
+            async function listOpenPRs() {
+              const all = await github.paginate(github.rest.pulls.list, {
+                owner,
+                repo,
+                state: "open",
+                per_page: 100,
+              });
+              return all;
+            }
+
+            async function getCodeRabbitState(prNumber) {
+              const checks = await github.graphql(
+                `query($owner:String!,$repo:String!,$number:Int!){
+                  repository(owner:$owner,name:$repo){
+                    pullRequest(number:$number){
+                      commits(last:1){
+                        nodes{
+                          commit{
+                            statusCheckRollup{
+                              contexts(first:50){
+                                nodes{
+                                  __typename
+                                  ... on CheckRun {
+                                    name
+                                    conclusion
+                                    status
+                                    completedAt
+                                  }
+                                  ... on StatusContext {
+                                    context
+                                    state
+                                    createdAt
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`,
+                { owner, repo, number: prNumber },
+              );
+
+              const nodes = checks.repository.pullRequest.commits.nodes[0]?.commit?.statusCheckRollup?.contexts?.nodes || [];
+              for (const n of nodes) {
+                if (n.__typename === "CheckRun" && n.name === "CodeRabbit") {
+                  return {
+                    state: (n.conclusion || n.status || "UNKNOWN").toUpperCase(),
+                    at: n.completedAt ? new Date(n.completedAt).getTime() : nowMs,
+                  };
+                }
+                if (n.__typename === "StatusContext" && n.context === "CodeRabbit") {
+                  return {
+                    state: (n.state || "UNKNOWN").toUpperCase(),
+                    at: n.createdAt ? new Date(n.createdAt).getTime() : nowMs,
+                  };
+                }
+              }
+              return { state: "MISSING", at: nowMs };
+            }
+
+            async function hasRecentRetryComment(prNumber) {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner,
+                repo,
+                issue_number: prNumber,
+                per_page: 100,
+              });
+
+              const latest = comments
+                .filter((c) => c.user?.login === "github-actions[bot]" && c.body?.includes(MARKER))
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+              if (!latest) return false;
+              const ageMin = (nowMs - new Date(latest.created_at).getTime()) / 60000;
+              return ageMin < STALE_MINUTES;
+            }
+
+            async function processPR(pr) {
+              const state = await getCodeRabbitState(pr.number);
+              const ageMin = (nowMs - state.at) / 60000;
+              const stateOk = state.state === "SUCCESS" || state.state === "NEUTRAL";
+
+              if (stateOk || ageMin < STALE_MINUTES) {
+                core.info(`PR #${pr.number}: skip (state=${state.state}, age=${ageMin.toFixed(1)}m)`);
+                return;
+              }
+
+              if (await hasRecentRetryComment(pr.number)) {
+                core.info(`PR #${pr.number}: skip (recent retry comment exists)`);
+                return;
+              }
+
+              const body = [
+                MARKER,
+                "@coderabbitai full review",
+                "",
+                `Automated retrigger: backlog > ${BACKLOG_THRESHOLD}, CodeRabbit state=${state.state}, age=${ageMin.toFixed(1)}m.`,
+              ].join("\n");
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr.number,
+                body,
+              });
+
+              core.notice(`PR #${pr.number}: posted CodeRabbit retrigger comment.`);
+            }
+
+            const openPRs = await listOpenPRs();
+            core.info(`Open PR count: ${openPRs.length}`);
+
+            if (openPRs.length <= BACKLOG_THRESHOLD) {
+              core.notice(`Backlog below threshold (${BACKLOG_THRESHOLD}); no automatic retries.`);
+              return;
+            }
+
+            const targetPRs = context.eventName === "pull_request_target"
+              ? openPRs.filter((p) => p.number === context.payload.pull_request.number)
+              : openPRs;
+
+            for (const pr of targetPRs) {
+              await processPR(pr);
+            }
