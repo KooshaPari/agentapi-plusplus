@@ -29,6 +29,12 @@ jq -e . "$contract" >/dev/null || fail "invalid json in $contract"
 jq -e '.openapi_schema_source.path == "openapi.json"' "$contract" >/dev/null \
   || fail "contract must declare openapi_schema_source.path as openapi.json"
 
+declared_openapi_schema_path="$(jq -r '.openapi_schema_source.path' "$contract")"
+[[ -n "$declared_openapi_schema_path" && "$declared_openapi_schema_path" != "null" ]] \
+  || fail "contract openapi_schema_source.path must be a non-empty string"
+[[ -f "$declared_openapi_schema_path" ]] \
+  || fail "declared openapi schema path does not exist: $declared_openapi_schema_path"
+
 jq -e '.versioning.policy == "semver"' "$contract" >/dev/null \
   || fail "contract must declare versioning.policy as semver"
 
