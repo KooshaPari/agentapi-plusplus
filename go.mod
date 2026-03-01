@@ -11,6 +11,7 @@ require (
 	github.com/danielgtaylor/huma/v2 v2.32.0
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.1
+	github.com/KooshaPari/phenotype-go-kit v0.0.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.1
@@ -244,3 +245,5 @@ tool (
 	github.com/rhysd/actionlint/cmd/actionlint
 	mvdan.cc/gofumpt
 )
+
+replace github.com/KooshaPari/phenotype-go-kit => ../../template-commons/phenotype-go-kit
