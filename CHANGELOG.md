@@ -1,17 +1,18 @@
 # Changelog
 
-## v0.11.9
+## v0.12.0
 
 ### Features
-- Integrate shared phenotype-go-kit packages (#328, #329)
-- Modernize tooling with oxc linter and bun (#330)
-- Add pagination support for messages endpoint (#335)
+- Experimental ACP integration
+- Introduce state persistence
 
 ### Fixes
-- Resolve PR303 contract and gate blockers (#333)
-- Stabilize policy federation and docs CI (#336)
-- Normalize OpenAPI contract hygiene (#334)
-- Fix TypeScript lint issues (#332)
+- Fix pr-preview workflow errors
+
+### Chore
+- Codebase refactor for abstraction
+- Go version bump to 1.24
+- Use coder/quartz
 
 ## v0.11.8
 
