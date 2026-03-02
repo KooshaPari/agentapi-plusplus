@@ -247,7 +247,3 @@ tool (
 	github.com/rhysd/actionlint/cmd/actionlint
 	mvdan.cc/gofumpt
 )
-
-replace github.com/KooshaPari/phenotype-go-middleware => ../../template-commons/phenotype-go-middleware
-
-replace github.com/KooshaPari/phenotype-go-config => ../../template-commons/phenotype-go-config
