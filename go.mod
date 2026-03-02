@@ -248,6 +248,6 @@ tool (
 	mvdan.cc/gofumpt
 )
 
-replace github.com/KooshaPari/phenotype-go-middleware => ../../../template-commons/phenotype-go-middleware
+replace github.com/KooshaPari/phenotype-go-middleware => ../../template-commons/phenotype-go-middleware
 
-replace github.com/KooshaPari/phenotype-go-config => ../../../template-commons/phenotype-go-config
+replace github.com/KooshaPari/phenotype-go-config => ../../template-commons/phenotype-go-config
