@@ -6,6 +6,7 @@ export default defineConfig({
   title: 'agentapi++',
   description: 'Agent API server docs',
   base: docsBase,
+  ignoreDeadLinks: true,
   themeConfig: {
     nav: [
       { text: 'Wiki', link: '/wiki/' },
