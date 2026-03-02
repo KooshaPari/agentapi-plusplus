@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -34,6 +35,7 @@ type Server struct {
 	port         int
 	srv          *http.Server
 	mu           sync.RWMutex
+	stopOnce     sync.Once
 	logger       *slog.Logger
 	conversation st.Conversation
 	agentio      st.AgentIO
@@ -42,6 +44,8 @@ type Server struct {
 	chatBasePath string
 	tempDir      string
 	clock        quartz.Clock
+	shutdownCtx  context.Context
+	shutdown     context.CancelFunc
 	transport    Transport
 }
 
@@ -92,15 +96,16 @@ func (s *Server) GetOpenAPI() string {
 const snapshotInterval = 25 * time.Millisecond
 
 type ServerConfig struct {
-	AgentType      mf.AgentType
-	AgentIO        st.AgentIO
-	Transport      Transport
-	Port           int
-	ChatBasePath   string
-	AllowedHosts   []string
-	AllowedOrigins []string
-	InitialPrompt  string
-	Clock          quartz.Clock
+	AgentType              mf.AgentType
+	AgentIO                st.AgentIO
+	Transport              Transport
+	Port                   int
+	ChatBasePath           string
+	AllowedHosts           []string
+	AllowedOrigins         []string
+	InitialPrompt          string
+	Clock                  quartz.Clock
+	StatePersistenceConfig st.StatePersistenceConfig
 }
 
 // NewServer creates a new server instance
@@ -178,16 +183,17 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 			return nil, fmt.Errorf("PTY transport requires termexec.Process")
 		}
 		conversation = st.NewPTY(ctx, st.PTYConversationConfig{
-			AgentType:             config.AgentType,
-			AgentIO:               proc,
-			Clock:                 config.Clock,
-			SnapshotInterval:      snapshotInterval,
-			ScreenStabilityLength: 2 * time.Second,
-			FormatMessage:         formatMessage,
-			ReadyForInitialPrompt: isAgentReadyForInitialPrompt,
-			FormatToolCall:        formatToolCall,
-			InitialPrompt:         initialPrompt,
-			Logger:                logger,
+			AgentType:              config.AgentType,
+			AgentIO:                proc,
+			Clock:                  config.Clock,
+			SnapshotInterval:       snapshotInterval,
+			ScreenStabilityLength:  2 * time.Second,
+			FormatMessage:          formatMessage,
+			ReadyForInitialPrompt:  isAgentReadyForInitialPrompt,
+			FormatToolCall:         formatToolCall,
+			InitialPrompt:          initialPrompt,
+			Logger:                 logger,
+			StatePersistenceConfig: config.StatePersistenceConfig,
 		}, emitter)
 	}
 
@@ -197,6 +203,8 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 		return nil, xerrors.Errorf("failed to create temporary directory: %w", err)
 	}
 	logger.Info("Created temporary directory for uploads", "tempDir", tempDir)
+
+	shutdownCtx, shutdownCancel := context.WithCancel(context.Background())
 
 	s := &Server{
 		router:       router,
@@ -210,6 +218,8 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 		chatBasePath: strings.TrimSuffix(config.ChatBasePath, "/"),
 		tempDir:      tempDir,
 		clock:        config.Clock,
+		shutdownCtx:  shutdownCtx,
+		shutdown:     shutdownCancel,
 		transport:    config.Transport,
 	}
 
@@ -310,6 +320,7 @@ func (s *Server) registerRoutes() {
 		// Mapping of event type name to Go struct for that event.
 		"message_update": MessageUpdateBody{},
 		"status_change":  StatusChangeBody{},
+		"agent_error":    ErrorBody{},
 	}, s.subscribeEvents)
 
 	sse.Register(s.api, huma.Operation{
@@ -435,6 +446,7 @@ func (s *Server) uploadFiles(ctx context.Context, input *struct {
 func (s *Server) subscribeEvents(ctx context.Context, input *struct{}, send sse.Sender) {
 	subscriberId, ch, stateEvents := s.emitter.Subscribe()
 	defer s.emitter.Unsubscribe(subscriberId)
+
 	s.logger.Info("New subscriber", "subscriberId", subscriberId)
 	for _, event := range stateEvents {
 		if event.Type == EventTypeScreenUpdate {
@@ -460,6 +472,9 @@ func (s *Server) subscribeEvents(ctx context.Context, input *struct{}, send sse.
 				s.logger.Error("Failed to send event", "subscriberId", subscriberId, "error", err)
 				return
 			}
+		case <-s.shutdownCtx.Done():
+			s.logger.Info("Server stop initiated, unsubscribing.", "subscriberId", subscriberId)
+			return
 		case <-ctx.Done():
 			s.logger.Info("Context done", "subscriberId", subscriberId)
 			return
@@ -494,6 +509,9 @@ func (s *Server) subscribeScreen(ctx context.Context, input *struct{}, send sse.
 				s.logger.Error("Failed to send screen event", "subscriberId", subscriberId, "error", err)
 				return
 			}
+		case <-s.shutdownCtx.Done():
+			s.logger.Info("Server stop initiated, unsubscribing.", "subscriberId", subscriberId)
+			return
 		case <-ctx.Done():
 			s.logger.Info("Screen context done", "subscriberId", subscriberId)
 			return
@@ -512,15 +530,22 @@ func (s *Server) Start() error {
 	return s.srv.ListenAndServe()
 }
 
-// Stop gracefully stops the HTTP server
+// Stop gracefully stops the HTTP server. It is safe to call multiple times.
 func (s *Server) Stop(ctx context.Context) error {
-	// Clean up temporary directory
-	s.cleanupTempDir()
+	var err error
+	s.stopOnce.Do(func() {
+		s.shutdown()
 
-	if s.srv != nil {
-		return s.srv.Shutdown(ctx)
-	}
-	return nil
+		// Clean up temporary directory
+		s.cleanupTempDir()
+
+		if s.srv != nil {
+			if err = s.srv.Shutdown(ctx); errors.Is(err, http.ErrServerClosed) {
+				err = nil
+			}
+		}
+	})
+	return err
 }
 
 // cleanupTempDir removes the temporary directory and all its contents
@@ -530,6 +555,14 @@ func (s *Server) cleanupTempDir() {
 	} else {
 		s.logger.Info("Cleaned up temporary directory", "tempDir", s.tempDir)
 	}
+}
+
+func (s *Server) SaveState(source string) error {
+	if err := s.conversation.SaveState(); err != nil {
+		s.logger.Error("Failed to save conversation state", "source", source, "error", err)
+		return err
+	}
+	return nil
 }
 
 // registerStaticFileRoutes sets up routes for serving static files
