@@ -39,6 +39,7 @@ type CORSOptions struct {
 func ApplyCustomCORS(router *chi.Mux, options CORSOptions) {
 	// The phenotype-go-kit middleware stack already includes CORS handling
 	// This function provides a hook for future customization
+	//nolint:errcheck // local middleware stack setup is non-fatal in this helper
 	ApplyDefaultStack(router)
 }
 

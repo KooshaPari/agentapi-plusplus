@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitepress'
-import { resolveDocsBase } from '../../../docs-hub/.vitepress/base.config'
 
-const docsBase = resolveDocsBase()
+const docsBase = process.env.DOCS_BASE ?? '/'
 
 export default defineConfig({
   title: 'agentapi++',
