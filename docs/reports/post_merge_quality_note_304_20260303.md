@@ -2,7 +2,7 @@
 
 - Repository: `KooshaPari/agentapi-plusplus`
 - PR: https://github.com/KooshaPari/agentapi-plusplus/pull/304
-- Merged at: 2026-03-03T16:11:02Z
+- Merged at: `2026-03-03T16:11:02Z`
 - Merge commit: `a21058c0a43484f7b0291805b7846610cadb52b8`
 
 ## Quality Snapshot
