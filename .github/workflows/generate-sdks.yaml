@@ -1,10 +1,12 @@
-name: Generate All SDKs
+name: Generate agentapi-plusplus SDKs
 
 on:
   push:
     branches: [main]
     paths:
-      - 'api/openapi.yaml'
+      - 'openapi.json'
+      - 'docs/contracts/openapi-agent-client.contract.json'
+      - 'scripts/validate_openapi_agent_client_module.sh'
       - 'internal/**/*.go'
   workflow_dispatch:
 
@@ -36,25 +38,28 @@ jobs:
         run: |
           npm install @openapitools/openapi-generator-cli -g
           pip install openapi-python-client
-      
+
+      - name: Validate OpenAPI client module contract
+        run: ./scripts/validate_openapi_agent_client_module.sh
+
       - name: Generate Python SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g python -o sdk/python --package-name agentapi
-      
+          openapi-generator generate -i openapi.json -g python -o sdk/python --package-name agentapi
+
       - name: Generate TypeScript SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g typescript-fetch -o sdk/typescript
-      
+          openapi-generator generate -i openapi.json -g typescript-fetch -o sdk/typescript
+
       - name: Generate Go SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g go -o sdk/go
-      
+          openapi-generator generate -i openapi.json -g go -o sdk/go
+
       - name: Generate Rust SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g rust -o sdk/rust
-      
+          openapi-generator generate -i openapi.json -g rust -o sdk/rust
+
       - name: Commit and push
         run: |
           git add sdk/
-          git commit -m "chore: generate all SDKs" || echo "No changes to commit"
+          git commit -m "chore(agentapi-plusplus): generate SDKs from openapi.json" || echo "No changes to commit"
           git push
