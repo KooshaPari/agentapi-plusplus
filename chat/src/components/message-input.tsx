@@ -342,7 +342,6 @@ export default function MessageInput({
                   }
 
                   {inputMode === "text" && serverStatus !== "running" && (
-                  {inputMode === "text" && serverStatus !== "running" && (
                     <div className="flex items-center gap-1">
                       <Button
                         type="button"
@@ -366,7 +365,6 @@ export default function MessageInput({
                         <span className="sr-only">Send</span>
                       </Button>
                     </div>
-                  )}
                   )}
 
                   {inputMode === "text" && serverStatus === "running" && (
