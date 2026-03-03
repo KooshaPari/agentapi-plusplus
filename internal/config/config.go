@@ -59,10 +59,11 @@ func LoadConfig(filePath string) (*AgentAPIConfig, error) {
 
 	if filePath != "" {
 		viper.SetConfigFile(filePath)
-		if _, statErr := os.Stat(filePath); statErr == nil {
-			if err := viper.ReadInConfig(); err != nil {
-				return nil, err
-			}
+		if _, statErr := os.Stat(filePath); statErr != nil {
+			return nil, statErr
+		}
+		if err := viper.ReadInConfig(); err != nil {
+			return nil, err
 		}
 	}
 

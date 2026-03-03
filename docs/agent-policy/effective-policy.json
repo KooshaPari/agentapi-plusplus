@@ -177,7 +177,7 @@
     ],
     "generated_at": "2026-03-02T08:03:24.333626+00:00",
     "policy_digest": "9c687c88d0bddf885d41db92aed7d91cd18625a1fb0b3b88c06c9618b335d71c",
-    "policy_signature": ""
+    "policy_signature": "UNSIGNED_LOCAL_ARTIFACT"
   },
   "policy": {
     "agent_governance": {
