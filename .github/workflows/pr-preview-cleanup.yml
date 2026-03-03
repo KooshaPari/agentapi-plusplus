@@ -16,6 +16,6 @@ jobs:
       - name: Delete PR Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: 'agentapi_${{ github.event.pull_request.number }}'
+          RELEASE_TAG: 'agentapi-plusplus_${{ github.event.pull_request.number }}'
         run: |
           gh release delete "$RELEASE_TAG" --cleanup-tag --yes --repo ${{ github.repository }} || true
