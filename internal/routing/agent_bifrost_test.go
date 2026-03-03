@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -329,6 +330,104 @@ func TestRoutingResponse_JSONUnmarshal(t *testing.T) {
 
 	if resp.Usage.TotalTokens != 30 {
 		t.Errorf("Expected 30 total tokens, got %d", resp.Usage.TotalTokens)
+	}
+}
+
+func TestRouteRequest_CliproxyChatCompletionsContract(t *testing.T) {
+	var seenModel string
+	var seenMessages []map[string]interface{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/v1/chat/completions" {
+			t.Fatalf("expected /v1/chat/completions, got %s", r.URL.Path)
+		}
+		if got := r.Header.Get("Content-Type"); !strings.Contains(got, "application/json") {
+			t.Fatalf("expected application/json content type, got %s", got)
+		}
+
+		var payload map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("failed to decode forwarded request: %v", err)
+		}
+		model, ok := payload["model"].(string)
+		if !ok || model == "" {
+			t.Fatalf("forwarded request missing string model")
+		}
+		rawMessages, ok := payload["messages"].([]interface{})
+		if !ok || len(rawMessages) == 0 {
+			t.Fatalf("forwarded request missing messages array")
+		}
+
+		seenModel = model
+		seenMessages = make([]map[string]interface{}, 0, len(rawMessages))
+		for _, item := range rawMessages {
+			msg, ok := item.(map[string]interface{})
+			if !ok {
+				t.Fatalf("message item is not an object: %T", item)
+			}
+			seenMessages = append(seenMessages, msg)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(RoutingResponse{
+			ID:    "chatcmpl_contract_123",
+			Model: model,
+			Choices: []Choice{{
+				Message: Message{
+					Role:    "assistant",
+					Content: "compatible response",
+				},
+			}},
+			Usage: Usage{
+				PromptTokens:     7,
+				CompletionTokens: 4,
+				TotalTokens:      11,
+			},
+		})
+	}))
+	defer server.Close()
+
+	bifrost, _ := NewAgentBifrost(server.URL)
+	resp, err := bifrost.RouteRequest(context.Background(), "compat-agent", "ping cliproxy")
+	if err != nil {
+		t.Fatalf("RouteRequest failed: %v", err)
+	}
+	if resp.ID == "" || resp.Model == "" {
+		t.Fatalf("expected non-empty id/model in response")
+	}
+	if seenModel == "" || len(seenMessages) != 1 {
+		t.Fatalf("expected captured forwarded request model/messages")
+	}
+	if seenMessages[0]["role"] != "user" {
+		t.Fatalf("expected user role in forwarded messages, got %v", seenMessages[0]["role"])
+	}
+	if seenMessages[0]["content"] != "ping cliproxy" {
+		t.Fatalf("unexpected forwarded message content: %v", seenMessages[0]["content"])
+	}
+}
+
+func TestForwardToCliproxy_RejectsContractInvalidResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"id": "chatcmpl_bad_123",
+		})
+	}))
+	defer server.Close()
+
+	bifrost, _ := NewAgentBifrost(server.URL)
+	_, err := bifrost.forwardToCliproxy(context.Background(), map[string]interface{}{
+		"model":    "gpt-4o",
+		"messages": []map[string]string{{"role": "user", "content": "hello"}},
+	})
+	if err == nil {
+		t.Fatalf("expected contract validation error")
+	}
+	if !strings.Contains(err.Error(), "contract violation") {
+		t.Fatalf("expected contract violation error, got %v", err)
 	}
 }
 

@@ -3,15 +3,12 @@ name: Build Release Binaries
 on:
   release:
     types: [published]
-  push:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
-      create-artifact:
-        description: 'Create build artifact'
+      release-tag:
+        description: 'Release tag to publish assets to (for example v1.2.3)'
         required: true
-        type: boolean
-        default: false
+        type: string
 
 jobs:
   build:
@@ -38,6 +35,19 @@ jobs:
         make gen
         ./check_unstaged.sh
 
+    - name: Enforce release changelog and version hygiene
+      shell: bash
+      env:
+        EXPECTED_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release-tag }}
+      run: |
+        VERSION="$(./version.sh)"
+        ./check_unstaged.sh
+        grep -Fq "## v${VERSION}" CHANGELOG.md
+        if [[ "$EXPECTED_TAG" != "v${VERSION}" ]]; then
+          echo "release tag ${EXPECTED_TAG} does not match version v${VERSION}"
+          exit 1
+        fi
+
     - name: Build and Upload
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,16 +69,15 @@ jobs:
         done
 
     - name: Upload Build Artifact
-      if: ${{ inputs.create-artifact }}
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
-        name: agentapi-build
+        name: agentapi-plusplus-build
         path: ${{ github.workspace }}/out
         retention-days: 7
 
     - name: Upload Release Assets
-      if: ${{ github.event_name == 'release' || github.ref == 'refs/heads/main' }}
+      if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
       run: gh release upload "$RELEASE_TAG" "$GITHUB_WORKSPACE"/out/* --clobber
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'preview' }}
+        RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release-tag }}

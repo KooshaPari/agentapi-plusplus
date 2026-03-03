@@ -120,8 +120,34 @@ func (a *AgentBifrost) forwardToCliproxy(ctx context.Context, body map[string]in
 	if err := json.NewDecoder(resp.Body).Decode(&routingResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
+	if err := validateChatCompletionsContractResponse(&routingResp); err != nil {
+		return nil, fmt.Errorf("cliproxy chat completions contract violation: %w", err)
+	}
 	
 	return &routingResp, nil
+}
+
+func validateChatCompletionsContractResponse(resp *RoutingResponse) error {
+	if resp == nil {
+		return fmt.Errorf("response is nil")
+	}
+	if resp.ID == "" {
+		return fmt.Errorf("missing id")
+	}
+	if resp.Model == "" {
+		return fmt.Errorf("missing model")
+	}
+	if len(resp.Choices) == 0 {
+		return fmt.Errorf("missing choices")
+	}
+	first := resp.Choices[0].Message
+	if first.Role == "" {
+		return fmt.Errorf("missing choices[0].message.role")
+	}
+	if first.Content == "" {
+		return fmt.Errorf("missing choices[0].message.content")
+	}
+	return nil
 }
 
 // getRule returns routing rules for an agent
