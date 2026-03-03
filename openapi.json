@@ -176,12 +176,11 @@
             "type": "string"
           },
           "logs": {
-            "description": "Filtered and sanitized server logs.",
+            "description": "Server logs",
             "items": {
-              "maxLength": 4096,
               "type": "string"
             },
-            "maxItems": 500,
+            "nullable": true,
             "type": "array"
           }
         },
@@ -258,7 +257,7 @@
             "type": "string"
           },
           "ok": {
-            "description": "Indicates whether the message was sent successfully. For messages of type 'user', success means detecting that the agent began executing the task described. For messages of type 'raw', success means the keystrokes were sent to the terminal. For messages of type 'command', success means the slash command was accepted for execution; unlike 'user', command messages are control actions and unlike 'raw' they are not terminal keystroke passthrough.",
+            "description": "Indicates whether the message was sent successfully. For messages of type 'user', success means detecting that the agent began executing the task described. For messages of type 'raw', success means the keystrokes were sent to the terminal.",
             "type": "boolean"
           }
         },
@@ -688,57 +687,8 @@
     },
     "/logs": {
       "get": {
-        "description": "Returns filtered server logs.",
+        "description": "Returns server logs.",
         "operationId": "get-logs",
-        "parameters": [
-          {
-            "description": "Start timestamp (inclusive) for log filtering.",
-            "in": "query",
-            "name": "from",
-            "required": false,
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "description": "End timestamp (inclusive) for log filtering.",
-            "in": "query",
-            "name": "to",
-            "required": false,
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Optional log level filter.",
-            "in": "query",
-            "name": "level",
-            "required": false,
-            "schema": {
-              "enum": [
-                "debug",
-                "info",
-                "warn",
-                "error"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "description": "Maximum number of log lines to return.",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "format": "int32",
-              "maximum": 500,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "content": {
@@ -835,29 +785,6 @@
       "get": {
         "description": "Returns a list of messages representing the conversation history with the agent. Supports ?after=<id> and ?limit=<n> query parameters for pagination.",
         "operationId": "get-messages",
-        "parameters": [
-          {
-            "description": "Cursor message id; return messages after this id.",
-            "in": "query",
-            "name": "after",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Maximum number of messages to return.",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "format": "int32",
-              "maximum": 500,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "content": {
