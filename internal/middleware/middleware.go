@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -96,7 +97,8 @@ func (h *RequestIDHandler) WrapHandler(next http.Handler) http.Handler {
 
 func registerProbe(router *chi.Mux, path string, body string) {
 	router.Get(path, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(body))
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": body})
 	})
 }
