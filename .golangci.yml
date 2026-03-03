@@ -5,10 +5,6 @@ linters:
     - errcheck
     - unused
   settings:
-    exhaustive:
-      check:
-        - "switch"
-        - "map"
     staticcheck:
       checks:
         - "-QF1001" # disable "could apply De Morgan's law"

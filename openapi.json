@@ -783,8 +783,32 @@
         "summary": "Delete messages"
       },
       "get": {
-        "description": "Returns a list of messages representing the conversation history with the agent. Supports ?after=<id> and ?limit=<n> query parameters for pagination.",
+        "description": "Returns a list of messages representing the conversation history with the agent.",
         "operationId": "get-messages",
+        "parameters": [
+          {
+            "description": "Return messages with id greater than this value.",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Maximum number of messages to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {

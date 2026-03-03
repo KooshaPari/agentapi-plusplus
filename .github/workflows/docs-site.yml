@@ -41,6 +41,8 @@ jobs:
 
       - name: Build docs
         working-directory: docs
+        env:
+          DOCS_BASE: /agentapi-plusplus/
         run: npm run docs:build
 
       - name: Upload artifact

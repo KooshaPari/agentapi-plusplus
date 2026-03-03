@@ -1,4 +1,4 @@
-// Package config provides configuration management for AgentAPI using phenotype-go-kit.
+// Package config provides configuration management for AgentAPI using Viper.
 package config
 
 import (
@@ -50,6 +50,9 @@ func LoadConfig(filePath string) (*AgentAPIConfig, error) {
 	viper.SetEnvPrefix("AGENTAPI")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+	if err := BindEnvVars(); err != nil {
+		return nil, err
+	}
 	for key, value := range defaults {
 		viper.SetDefault(key, value)
 	}
@@ -85,6 +88,9 @@ func LoadConfigWithEnv(filePath string) (*AgentAPIConfig, error) {
 	viper.SetEnvPrefix("AGENTAPI")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+	if err := BindEnvVars(); err != nil {
+		return nil, err
+	}
 
 	// Re-unmarshal with environment overrides
 	if err := viper.Unmarshal(cfg); err != nil {
@@ -104,6 +110,7 @@ func BindEnvVars() error {
 		"server.allowed_origins": "AGENTAPI_ALLOWED_ORIGINS",
 		"server.term_width":      "AGENTAPI_TERM_WIDTH",
 		"server.term_height":     "AGENTAPI_TERM_HEIGHT",
+		"server.print_openapi":   "AGENTAPI_PRINT_OPENAPI",
 		"agent.type":             "AGENTAPI_AGENT_TYPE",
 		"agent.initial_prompt":   "AGENTAPI_INITIAL_PROMPT",
 	}
