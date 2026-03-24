@@ -219,7 +219,6 @@ export function ChatProvider({ children }: PropsWithChildren) {
       eventSource.onopen = () => {
         // Connection is established, but we'll wait for status_change event
         // for the actual server status
-        console.log("EventSource connection established - messages reset");
       };
 
       // Handle connection errors

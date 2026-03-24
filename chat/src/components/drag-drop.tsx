@@ -27,7 +27,7 @@ export function DragDrop({ onFilesAdded, disabled = false, children, className =
     >
       <input {...getInputProps()} />
       {isDragActive && !disabled && (
-        <div className="absolute inset-0 flex items-center justify-center bg-primary/20z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-primary/20 z-10">
           <p className="text-sm text-primary font-medium">Drop the files here</p>
         </div>
       )}
