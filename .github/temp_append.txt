@@ -1,0 +1,5 @@
+      - uses: KooshaPari/phenotypeActions/actions/policy-gate@main
+        with:
+          base_branch: main
+          block_merge_commits: true
+          require_layered_fix: true
