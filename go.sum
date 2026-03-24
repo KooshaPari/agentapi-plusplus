@@ -1063,3 +1063,5 @@ mvdan.cc/unparam v0.0.0-20250301125049-0df0534333a4/go.mod h1:rthT7OuvRbaGcd5gin
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
+github.com/KooshaPari/phenotype-go-kit v0.0.0-20260324025120-4c9ad8afc9eb h1:h7dQoqTND5lW+GxE8UPXETIKg0YwfTOToM12Ez0FGCY=
+github.com/KooshaPari/phenotype-go-kit v0.0.0-20260324025120-4c9ad8afc9eb/go.mod h1:eZK+63OAvRIF6lzMVceJPFo0tM3j8ZYkIIsVQAIiAGc=
