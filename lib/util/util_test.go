@@ -2,11 +2,8 @@ package util
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
-
-	"github.com/danielgtaylor/huma/v2"
 )
 
 func TestGetUnexportedField(t *testing.T) {
@@ -87,17 +84,43 @@ func TestWaitFor_ImmediateSuccess(t *testing.T) {
 	}
 }
 
-// mockRegistry implements huma.Registry for testing
-type mockRegistry struct{}
 
-func (m *mockRegistry) Register(t *huma.Schema, name string) *huma.Schema {
-	return t
+// TestAfter tests the After function
+func TestAfter(t *testing.T) {
+	start := time.Now()
+	duration := 10 * time.Millisecond
+
+	ch := After(nil, duration)
+	if ch == nil {
+		t.Error("expected channel, got nil")
+	}
+
+	// Wait for the timer to fire
+	<-ch
+
+	elapsed := time.Since(start)
+	if elapsed < duration {
+		t.Errorf("expected elapsed time >= %v, got %v", duration, elapsed)
+	}
+	if elapsed > duration+100*time.Millisecond {
+		t.Errorf("timer took too long: %v", elapsed)
+	}
 }
 
-func (m *mockRegistry) SchemaFromType(t reflect.Type) *huma.Schema {
-	return nil
-}
+// TestAfter_ClosedChannel tests that After properly closes the channel
+func TestAfter_ClosedChannel(t *testing.T) {
+	ch := After(nil, 10*time.Millisecond)
 
-func (m *mockRegistry) Map(typeName string, schema *huma.Schema) {
-	// no-op
+	// Read from the channel
+	<-ch
+
+	// Try to read again - should return zero value
+	select {
+	case _, ok := <-ch:
+		if ok {
+			t.Error("expected channel to be closed")
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Error("expected channel to be closed immediately")
+	}
 }
