@@ -11,6 +11,12 @@ Only these files should remain in the project root:
 - `CLAUDE.md` / `claude.md` - Claude-specific instructions
 - `00_START_HERE.md` - Getting started guide (if applicable)
 
+## Worktree Boundary
+
+This checkout is the legacy alias root for governance docs. Treat
+`repos/worktrees/agentapi-plusplus-governance/...` as the source of truth for active lane state,
+and do not move live lanes into this alias shell.
+
 ## Documentation Structure
 
 All other `.md` files must be organized in `docs/` subdirectories:
@@ -140,3 +146,8 @@ docs/
 - Group 1-3 related files per subagent by violation type
 - Production code takes priority over test code for complexity/security
 - Test code refactoring (funlen) can be delegated more aggressively
+
+## Child-Agent and Delegation Policy
+- Use child agents liberally for scoped discovery, audits, multi-repo scans, and implementation planning before direct parent-agent edits.
+- Prefer delegating high-context or high-churn tasks to subagents, and keep parent-agent changes focused on integration and finalization.
+- Reserve parent-agent direct writes for the narrowest, final decision layer.
