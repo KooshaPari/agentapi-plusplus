@@ -9,6 +9,10 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build Release Binaries
@@ -49,10 +53,10 @@ jobs:
             "darwin arm64 agentapi-darwin-arm64"
             "windows amd64 agentapi-windows-amd64.exe"
           )
-          
+
           for variant in "${build_variants[@]}"; do
             read -r goos goarch artifact_name <<< "$variant"
-          
+
             echo "Building for GOOS=$goos GOARCH=$goarch..."
             CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch BINPATH="out/$artifact_name" make build
           done

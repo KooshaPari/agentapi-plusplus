@@ -1,6 +1,11 @@
 version: '3'
 
 tasks:
+  ci:
+    desc: "Run local CI checks (mirrors GitHub Actions)"
+    cmds:
+      - ./scripts/ci-local.sh
+
   # Quality gate - runs strict lint, type check, tests, and security
   quality:
     desc: "Run full strict quality pipeline (lint/test/security)"
