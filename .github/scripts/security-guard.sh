@@ -25,6 +25,12 @@ if command -v codespell >/dev/null 2>&1; then
 
   if [ -n "${changed_files}" ]; then
     echo "[security-guard] Running optional codespell fast pass"
+<<<<<<< HEAD
     echo "${changed_files}" |       grep -E '\.(md|txt|py|ts|tsx|js|go|rs|kt|java|yaml|yml)$' |       xargs -r codespell -q 2 -L "hte,teh" || true
+=======
+    echo "${changed_files}" | \
+      grep -E '\.(md|txt|py|ts|tsx|js|go|rs|kt|java|yaml|yml)$' | \
+      xargs -r codespell -q 2 -L "hte,teh" || true
+>>>>>>> origin/main
   fi
 fi

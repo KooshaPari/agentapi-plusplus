@@ -2,7 +2,8 @@
 package config
 
 import (
-	"github.com/KooshaPari/phenotype-go-config"
+	"os"
+
 	"github.com/spf13/viper"
 )
 
@@ -31,11 +32,7 @@ type AgentConfig struct {
 }
 
 // LoadConfig loads the configuration from a file and environment variables.
-// It uses phenotype-go-kit's config loader for consistent configuration handling.
 func LoadConfig(filePath string) (*AgentAPIConfig, error) {
-	loader := config.NewConfigLoader(filePath)
-
-	// Set defaults for server configuration
 	defaults := map[string]any{
 		"server.port":             3284,
 		"server.host":             "localhost",
@@ -49,15 +46,18 @@ func LoadConfig(filePath string) (*AgentAPIConfig, error) {
 		"agent.initial_prompt":    "",
 	}
 
-	// Load configuration with defaults
-	if err := loader.LoadWithDefaults(defaults); err != nil {
-		// If file doesn't exist, continue with defaults from environment
-		viper.SetEnvPrefix("AGENTAPI")
-		viper.AutomaticEnv()
+	viper.SetEnvPrefix("AGENTAPI")
+	viper.AutomaticEnv()
+	for key, value := range defaults {
+		viper.SetDefault(key, value)
+	}
 
-		// Set all defaults in viper
-		for key, value := range defaults {
-			viper.SetDefault(key, value)
+	if filePath != "" {
+		viper.SetConfigFile(filePath)
+		if _, statErr := os.Stat(filePath); statErr == nil {
+			if err := viper.ReadInConfig(); err != nil {
+				return nil, err
+			}
 		}
 	}
 

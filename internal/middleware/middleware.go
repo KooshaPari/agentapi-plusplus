@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	gkitmiddleware "github.com/KooshaPari/phenotype-go-middleware"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
 // ApplyDefaultStack applies the phenotype-go-kit middleware stack to a chi router.
@@ -18,7 +18,11 @@ import (
 // Returns:
 //   - error: An error if middleware setup fails
 func ApplyDefaultStack(router *chi.Mux) error {
-	return gkitmiddleware.DefaultMiddlewareStack(router)
+	router.Use(chimiddleware.RequestID)
+	router.Use(chimiddleware.RealIP)
+	router.Use(chimiddleware.Recoverer)
+	router.Use(chimiddleware.Logger)
+	return nil
 }
 
 // CORSOptions extends the phenotype-go-kit CORS configuration with AgentAPI-specific settings.
@@ -35,6 +39,7 @@ type CORSOptions struct {
 func ApplyCustomCORS(router *chi.Mux, options CORSOptions) {
 	// The phenotype-go-kit middleware stack already includes CORS handling
 	// This function provides a hook for future customization
+	//nolint:errcheck // local middleware stack setup is non-fatal in this helper
 	ApplyDefaultStack(router)
 }
 
@@ -43,7 +48,10 @@ func ApplyCustomCORS(router *chi.Mux, options CORSOptions) {
 // Parameters:
 //   - router: The chi router to register the route on
 func HealthCheckRoute(router *chi.Mux) {
-	router.Get("/health", gkitmiddleware.HealthCheckHandler)
+	router.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	})
 }
 
 // ReadinessCheckRoute registers a readiness check endpoint using phenotype-go-kit's handler.
@@ -51,7 +59,10 @@ func HealthCheckRoute(router *chi.Mux) {
 // Parameters:
 //   - router: The chi router to register the route on
 func ReadinessCheckRoute(router *chi.Mux) {
-	router.Get("/readiness", gkitmiddleware.ReadinessCheckHandler)
+	router.Get("/readiness", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ready"))
+	})
 }
 
 // RequestIDHandler is a helper that allows callers to extract or use request IDs
