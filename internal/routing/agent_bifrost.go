@@ -13,6 +13,7 @@ import (
 
 	"github.com/coder/agentapi/internal/benchmarks"
 )
+
 // AgentBifrost is the Bifrost extension for agent-specific routing
 // It sits between thegent and cliproxy+bifrost, providing:
 // - Custom routing rules per agent
@@ -21,15 +22,15 @@ import (
 // - Dynamic benchmark data from tokenledger
 type AgentBifrost struct {
 	cliproxyURL string
-	client     *http.Client
+	client      *http.Client
 
 	// Session management
 	sessions    map[string]*AgentSession
 	sessionsMut sync.RWMutex
 
 	// Agent-specific routing rules
-	rules      map[string]RoutingRule
-	rulesMut   sync.RWMutex
+	rules    map[string]RoutingRule
+	rulesMut sync.RWMutex
 
 	// Benchmark data for routing decisions
 	benchmarks *benchmarks.Store
@@ -37,20 +38,20 @@ type AgentBifrost struct {
 
 // AgentSession represents a session with routing metadata
 type AgentSession struct {
-	ID        string                 `json:"id"`
+	ID       string                 `json:"id"`
 	Agent    string                 `json:"agent"`
-	Started  time.Time             `json:"started"`
-	Models   []string              `json:"models"`
+	Started  time.Time              `json:"started"`
+	Models   []string               `json:"models"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
 // RoutingRule defines routing behavior for an agent
 type RoutingRule struct {
-	Agent         string   `json:"agent"`
+	Agent          string   `json:"agent"`
 	PreferredModel string   `json:"preferred_model"`
 	FallbackModels []string `json:"fallback_models"`
-	MaxRetries   int      `json:"max_retries"`
-	Timeout     int      `json:"timeout_seconds"`
+	MaxRetries     int      `json:"max_retries"`
+	Timeout        int      `json:"timeout_seconds"`
 }
 
 // NewAgentBifrost creates a new agent routing layer
@@ -70,15 +71,15 @@ func NewAgentBifrost(cliproxyURL string) (*AgentBifrost, error) {
 func (a *AgentBifrost) RouteRequest(ctx context.Context, agent string, prompt string) (*RoutingResponse, error) {
 	// Get agent-specific routing rules
 	rule := a.getRule(agent)
-	
+
 	// Build the request to cliproxy+bifrost
 	reqBody := map[string]interface{}{
-		"model":   rule.PreferredModel,
+		"model":    rule.PreferredModel,
 		"messages": []map[string]string{{"role": "user", "content": prompt}},
-		"agent":   agent,
-		"session": a.getOrCreateSession(agent),
+		"agent":    agent,
+		"session":  a.getOrCreateSession(agent),
 	}
-	
+
 	// Forward to cliproxy+bifrost
 	resp, err := a.forwardToCliproxy(ctx, reqBody)
 	if err != nil {
@@ -91,7 +92,7 @@ func (a *AgentBifrost) RouteRequest(ctx context.Context, agent string, prompt st
 			}
 		}
 	}
-	
+
 	return resp, err
 }
 
@@ -101,26 +102,26 @@ func (a *AgentBifrost) forwardToCliproxy(ctx context.Context, body map[string]in
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", a.cliproxyURL+"/v1/chat/completions", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Body = io.NopCloser(bytes.NewReader(jsonBody))
-	
+
 	resp, err := a.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request to cliproxy failed: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	var routingResp RoutingResponse
 	if err := json.NewDecoder(resp.Body).Decode(&routingResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	return &routingResp, nil
 }
 
@@ -128,18 +129,18 @@ func (a *AgentBifrost) forwardToCliproxy(ctx context.Context, body map[string]in
 func (a *AgentBifrost) getRule(agent string) RoutingRule {
 	a.rulesMut.RLock()
 	defer a.rulesMut.RUnlock()
-	
+
 	if rule, ok := a.rules[agent]; ok {
 		return rule
 	}
-	
+
 	// Default rule
 	return RoutingRule{
-		Agent:         agent,
+		Agent:          agent,
 		PreferredModel: "claude-3-5-sonnet-20241022",
 		FallbackModels: []string{"gpt-4o", "gemini-1.5-pro"},
-		MaxRetries:   3,
-		Timeout:      30,
+		MaxRetries:     3,
+		Timeout:        30,
 	}
 }
 
@@ -175,7 +176,7 @@ func (a *AgentBifrost) getOrCreateSession(agent string) string {
 		}
 	}
 	a.sessions[id] = &AgentSession{
-		ID:        id,
+		ID:       id,
 		Agent:    agent,
 		Started:  time.Now(),
 		Metadata: make(map[string]interface{}),
@@ -185,11 +186,11 @@ func (a *AgentBifrost) getOrCreateSession(agent string) string {
 
 // RoutingResponse represents the response from routing
 type RoutingResponse struct {
-	ID      string          `json:"id"`
-	Model  string          `json:"model"`
-	Choices []Choice       `json:"choices"`
-	Usage  Usage          `json:"usage"`
-	Error  string         `json:"error,omitempty"`
+	ID      string   `json:"id"`
+	Model   string   `json:"model"`
+	Choices []Choice `json:"choices"`
+	Usage   Usage    `json:"usage"`
+	Error   string   `json:"error,omitempty"`
 }
 
 type Choice struct {
@@ -204,7 +205,7 @@ type Message struct {
 type Usage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens     int `json:"total_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 // ModelMetrics represents benchmark metrics for a model

@@ -163,9 +163,9 @@ func TestForwardToCliproxy_Success(t *testing.T) {
 	bifrost, _ := NewAgentBifrost(server.URL)
 
 	body := map[string]interface{}{
-		"model":   "claude-3-5-sonnet-20241022",
-		"prompt":  "Hello",
-		"agent":   "test-agent",
+		"model":  "claude-3-5-sonnet-20241022",
+		"prompt": "Hello",
+		"agent":  "test-agent",
 	}
 
 	resp, err := bifrost.forwardToCliproxy(context.Background(), body)
