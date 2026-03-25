@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
 	st "github.com/coder/agentapi/lib/screentracker"
 )
 
