@@ -17,7 +17,14 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
+
+strategy:
+  matrix:
+    python-version: ["3.12","3.14"]
+  fail-fast: false
+
+# Transition: remove 3.12 after verification.
       
       - name: Setup Node
         uses: actions/setup-node@v4
