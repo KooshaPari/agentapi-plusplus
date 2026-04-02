@@ -20,6 +20,9 @@ __pycache__/
 
 .env
 
+# Docs generated install artifacts
+docs/node_modules/
+
 # Phenotype Config
 .phenotype/
 config.db
