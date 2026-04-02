@@ -21,6 +21,7 @@
 - Replaced fake workflow commands with repo-native commands:
   - `go-test.yml` now runs `golangci-lint` directly, runs chat lint via Bun, and uses `go generate ./...` for tracked artifact checks.
   - `pr-preview-build.yml` and `release.yml` now regenerate artifacts via `go generate ./...` and build binaries via direct `go build`.
+- Removed the hard `file:../vendor/phenodocs/packages/docs` dependency from `docs/package.json` and switched the VitePress config to import the vendored shared config only when the path actually exists.
 
 ## Validation
 

@@ -1,12 +1,24 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { defineConfig } from "vitepress";
 
 let createPhenotypeConfig = (config: Parameters<typeof defineConfig>[0]) =>
   defineConfig(config);
 
-try {
-  ({ createPhenotypeConfig } = await import("@phenotype/docs/config"));
-} catch {
-  // CI and standalone doc builds may not include the vendored shared docs package.
+const vendoredConfigPath = resolve(
+  process.cwd(),
+  "../vendor/phenodocs/packages/docs/config.js",
+);
+
+if (existsSync(vendoredConfigPath)) {
+  try {
+    ({ createPhenotypeConfig } = await import(
+      pathToFileURL(vendoredConfigPath).href
+    ));
+  } catch {
+    // CI and standalone doc builds may not include the vendored shared docs package.
+  }
 }
 
 export default createPhenotypeConfig({
