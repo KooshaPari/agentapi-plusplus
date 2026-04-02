@@ -1,0 +1,50 @@
+rules:
+  - id: circular-module-dependency
+    patterns:
+      - pattern-either:
+          - pattern: |
+              use crate::domain::*;
+          - pattern: |
+              use crate::adapters::*;
+    message: Potential circular dependency. Check module import hierarchy.
+    languages: [rust]
+    severity: MEDIUM
+
+  - id: layer-violation-adapter-accessing-domain
+    pattern-either:
+      - pattern: |
+          use crate::domain::$X;
+      - pattern: |
+          use crate::domain::$X::$Y;
+    message: Direct domain imports should stay out of adapter-facing layers. Prefer ports/traits instead.
+    languages: [rust]
+    severity: MEDIUM
+
+  - id: mixed-concerns-in-handler
+    patterns:
+      - pattern: |
+          async fn $HANDLER(...) {
+              ...
+              database.query(...)
+              ...
+              api.call(...)
+              ...
+              filesystem.write(...)
+              ...
+          }
+    message: Handler mixes database, API, and filesystem concerns. Consider dependency injection.
+    languages: [rust]
+    severity: LOW
+
+  - id: direct-database-in-tests
+    patterns:
+      - pattern: |
+          #[test]
+          fn $TEST(...) {
+              ...
+              Database::connect(...)
+              ...
+          }
+    message: Tests should use mocks/fixtures, not direct database connections.
+    languages: [rust]
+    severity: MEDIUM
