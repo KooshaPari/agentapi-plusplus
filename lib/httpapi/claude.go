@@ -26,9 +26,16 @@ func formatClaudeCodeMessage(message string) []st.MessagePart {
 	return parts
 }
 
+func formatPlainMessage(message string) []st.MessagePart {
+	return []st.MessagePart{st.MessagePartText{Content: message}}
+}
+
 func FormatMessage(agentType mf.AgentType, message string) []st.MessagePart {
 	message = mf.TrimWhitespace(message)
-	// for now Claude Code formatting seems to also work for Goose and Aider
-	// so we can use the same function for all three
+	if agentType == mf.AgentTypeCustom {
+		return formatPlainMessage(message)
+	}
+	// For the interactive CLIs we drive via PTY, preserve the existing
+	// bracketed-paste flow that avoids partial terminal echo.
 	return formatClaudeCodeMessage(message)
 }

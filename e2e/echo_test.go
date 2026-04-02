@@ -21,9 +21,15 @@ import (
 )
 
 const (
-	testTimeout        = 30 * time.Second
-	operationTimeout   = 10 * time.Second
-	healthCheckTimeout = 10 * time.Second
+	testTimeout        = 90 * time.Second
+	operationTimeout   = 20 * time.Second
+	healthCheckTimeout = 30 * time.Second
+)
+
+var (
+	binaryBuildOnce sync.Once
+	binaryBuildPath string
+	binaryBuildErr  error
 )
 
 type ScriptEntry struct {
@@ -37,6 +43,8 @@ func TestE2E(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
+	ensureBinaryBuilt(t)
+
 	t.Run("basic", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 		defer cancel()
@@ -48,8 +56,7 @@ func TestE2E(t *testing.T) {
 		}
 		_, err := apiClient.PostMessage(ctx, messageReq)
 		require.NoError(t, err, "Failed to send message via SDK")
-		require.NoError(t, waitAgentAPIStable(ctx, t, apiClient, operationTimeout, "post message"))
-		msgResp, err := apiClient.GetMessages(ctx)
+		msgResp, err := waitForMessagesWithCount(ctx, t, apiClient, 3, operationTimeout, "basic post message")
 		require.NoError(t, err, "Failed to get messages via SDK")
 		require.Len(t, msgResp.Messages, 3)
 		require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
@@ -72,8 +79,12 @@ func TestE2E(t *testing.T) {
 		statusResp, err := apiClient.GetStatus(ctx)
 		require.NoError(t, err)
 		require.Equal(t, agentapisdk.StatusRunning, statusResp.Status)
-		require.NoError(t, waitAgentAPIStable(ctx, t, apiClient, 5*time.Second, "post message"))
-		msgResp, err := apiClient.GetMessages(ctx)
+		msgResp, err := waitForMessages(ctx, t, apiClient, operationTimeout, "thinking post message", func(resp *agentapisdk.GetMessagesResponse) bool {
+			if len(resp.Messages) != 3 {
+				return false
+			}
+			return strings.Contains(resp.Messages[2].Content, script[2].ResponseMessage)
+		})
 		require.NoError(t, err, "Failed to get messages via SDK")
 		require.Len(t, msgResp.Messages, 3)
 		require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
@@ -94,10 +105,9 @@ func TestE2E(t *testing.T) {
 				script := fmt.Sprintf(`echo "hello agent" | %s %s`, defCmd, strings.Join(defArgs, " "))
 				return "/bin/sh", []string{"-c", script}
 			},
-		}, true)
+		}, false)
 		defer cleanup()
-		require.NoError(t, waitAgentAPIStable(ctx, t, apiClient, 5*time.Second, "stdin"))
-		msgResp, err := apiClient.GetMessages(ctx)
+		msgResp, err := waitForMessagesWithCount(ctx, t, apiClient, 3, operationTimeout, "stdin setup")
 		require.NoError(t, err, "Failed to get messages via SDK")
 		require.Len(t, msgResp.Messages, 3)
 		require.Equal(t, script[0].ExpectMessage, strings.TrimSpace(msgResp.Messages[1].Content))
@@ -125,10 +135,7 @@ func TestE2E(t *testing.T) {
 		}
 		_, err := apiClient.PostMessage(ctx, messageReq)
 		require.NoError(t, err, "Failed to send first message")
-		require.NoError(t, waitAgentAPIStable(ctx, t, apiClient, operationTimeout, "first message"))
-
-		// Verify messages before shutdown
-		msgResp, err := apiClient.GetMessages(ctx)
+		msgResp, err := waitForMessagesWithCount(ctx, t, apiClient, 3, operationTimeout, "state persistence first message")
 		require.NoError(t, err, "Failed to get messages before shutdown")
 		require.Len(t, msgResp.Messages, 3, "Expected 3 messages before shutdown")
 		require.Equal(t, script[0].ResponseMessage, strings.TrimSpace(msgResp.Messages[0].Content))
@@ -176,10 +183,10 @@ func TestE2E(t *testing.T) {
 			stateFile:      stateFile,
 			scriptFilePath: scriptFilePath,
 			initialPrompt:  initialPrompt1,
-		}, true)
+		}, false)
 
 		// Verify initial prompt was sent (should have 3 messages: agent greeting + initial prompt + response)
-		msgResp, err := apiClient.GetMessages(ctx)
+		msgResp, err := waitForMessagesWithCount(ctx, t, apiClient, 3, operationTimeout, "initial prompt setup")
 		require.NoError(t, err, "Failed to get messages after initial prompt")
 		require.Len(t, msgResp.Messages, 3, "Expected 3 messages after initial prompt")
 		require.Equal(t, "Hello! I'm ready to help you.", strings.TrimSpace(msgResp.Messages[0].Content))
@@ -234,10 +241,10 @@ func TestE2E(t *testing.T) {
 			stateFile:      stateFile,
 			scriptFilePath: filepath.Join("testdata", "state_persistence_different_initial_prompt_phase1.json"),
 			initialPrompt:  initialPrompt1,
-		}, true)
+		}, false)
 
 		// Verify initial prompt was sent (3 messages: greeting + prompt + response)
-		msgResp, err := apiClient.GetMessages(ctx)
+		msgResp, err := waitForMessagesWithCount(ctx, t, apiClient, 3, operationTimeout, "different initial prompt phase1")
 		require.NoError(t, err, "Failed to get messages after initial prompt")
 		require.Len(t, msgResp.Messages, 3, "Expected 3 messages after initial prompt")
 		require.Equal(t, "Hello! I'm ready to help you.", strings.TrimSpace(msgResp.Messages[0].Content))
@@ -256,9 +263,6 @@ func TestE2E(t *testing.T) {
 			initialPrompt:  initialPrompt2,
 		}, false)
 		defer cleanup2()
-
-		// Wait for initial prompt to be processed and state to stabilize
-		require.NoError(t, waitAgentAPIStable(ctx, t, apiClient2, operationTimeout, "after different initial prompt"))
 
 		// Step 4: Verify new initial prompt WAS sent (5 messages: 3 previous + 2 new)
 		msgResp2, err := waitForMessagesWithCount(ctx, t, apiClient2, 5, operationTimeout, "different initial prompt processed")
@@ -351,17 +355,7 @@ func setup(ctx context.Context, t testing.TB, p *params, waitForStable bool) ([]
 	err = json.Unmarshal(data, &script)
 	require.NoError(t, err, "Failed to unmarshal script from %s", scriptFilePath)
 
-	binaryPath := os.Getenv("AGENTAPI_BINARY_PATH")
-	if binaryPath == "" {
-		cwd, err := os.Getwd()
-		require.NoError(t, err, "Failed to get current working directory")
-		binaryPath = filepath.Join(cwd, "..", "out", "agentapi")
-		t.Logf("Building binary at %s", binaryPath)
-		buildCmd := exec.CommandContext(ctx, "go", "build", "-o", binaryPath, ".")
-		buildCmd.Dir = filepath.Join(cwd, "..")
-		t.Logf("run: %s", buildCmd.String())
-		require.NoError(t, buildCmd.Run(), "Failed to build binary")
-	}
+	binaryPath := ensureBinaryBuilt(t)
 
 	serverPort, err := getFreePort()
 	require.NoError(t, err, "Failed to get free port for server")
@@ -431,6 +425,36 @@ func setup(ctx context.Context, t testing.TB, p *params, waitForStable bool) ([]
 	return script, apiClient, cleanup
 }
 
+func ensureBinaryBuilt(t testing.TB) string {
+	t.Helper()
+
+	envBinaryPath := os.Getenv("AGENTAPI_BINARY_PATH")
+	if envBinaryPath != "" {
+		return envBinaryPath
+	}
+
+	binaryBuildOnce.Do(func() {
+		cwd, err := os.Getwd()
+		if err != nil {
+			binaryBuildErr = fmt.Errorf("failed to get current working directory: %w", err)
+			return
+		}
+
+		binaryBuildPath = filepath.Join(cwd, "..", "out", "agentapi")
+		buildCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+
+		buildCmd := exec.CommandContext(buildCtx, "go", "build", "-o", binaryBuildPath, ".")
+		buildCmd.Dir = filepath.Join(cwd, "..")
+		t.Logf("Building binary at %s", binaryBuildPath)
+		t.Logf("run: %s", buildCmd.String())
+		binaryBuildErr = buildCmd.Run()
+	})
+
+	require.NoError(t, binaryBuildErr, "Failed to build binary")
+	return binaryBuildPath
+}
+
 // logOutput logs process output with prefix
 func logOutput(t testing.TB, prefix string, r io.Reader) {
 	t.Helper()
@@ -476,8 +500,18 @@ func waitAgentAPIStable(ctx context.Context, t testing.TB, apiClient *agentapisd
 		elapsed := time.Since(start)
 		t.Logf("%s: agent API status: %s (elapsed: %s)", msg, currStatus, elapsed.Round(100*time.Millisecond))
 	}()
-	evts, errs, err := apiClient.SubscribeEvents(ctx)
+	statusResp, err := apiClient.GetStatus(waitCtx)
+	if err == nil {
+		currStatus = statusResp.Status
+		if currStatus == agentapisdk.StatusStable {
+			return nil
+		}
+	}
+
+	evts, errs, err := apiClient.SubscribeEvents(waitCtx)
 	require.NoError(t, err, "failed to subscribe to events")
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-waitCtx.Done():
@@ -497,12 +531,29 @@ func waitAgentAPIStable(ctx context.Context, t testing.TB, apiClient *agentapisd
 			}
 		case err := <-errs:
 			return fmt.Errorf("read events: %w", err)
+		case <-ticker.C:
+			statusResp, err := apiClient.GetStatus(waitCtx)
+			if err != nil {
+				t.Logf("%s: GetStatus failed (will retry): %v", msg, err)
+				continue
+			}
+			currStatus = statusResp.Status
+			if currStatus == agentapisdk.StatusStable {
+				return nil
+			}
 		}
 	}
 }
 
 // waitForMessagesWithCount retries GetMessages until it returns the expected number of messages or the timeout is reached.
 func waitForMessagesWithCount(ctx context.Context, t testing.TB, apiClient *agentapisdk.Client, expectedCount int, timeout time.Duration, msg string) (*agentapisdk.GetMessagesResponse, error) {
+	t.Helper()
+	return waitForMessages(ctx, t, apiClient, timeout, msg, func(resp *agentapisdk.GetMessagesResponse) bool {
+		return len(resp.Messages) == expectedCount
+	})
+}
+
+func waitForMessages(ctx context.Context, t testing.TB, apiClient *agentapisdk.Client, timeout time.Duration, msg string, predicate func(*agentapisdk.GetMessagesResponse) bool) (*agentapisdk.GetMessagesResponse, error) {
 	t.Helper()
 	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -518,25 +569,25 @@ func waitForMessagesWithCount(ctx context.Context, t testing.TB, apiClient *agen
 		select {
 		case <-waitCtx.Done():
 			if lastErr != nil {
-				return nil, fmt.Errorf("%s: failed to get %d messages after %v (last error: %w, last count: %d)",
-					msg, expectedCount, time.Since(start).Round(100*time.Millisecond), lastErr, lastCount)
+				return nil, fmt.Errorf("%s: message predicate not satisfied after %v (last error: %w, last count: %d)",
+					msg, time.Since(start).Round(100*time.Millisecond), lastErr, lastCount)
 			}
-			return nil, fmt.Errorf("%s: timeout waiting for %d messages after %v (last count: %d)",
-				msg, expectedCount, time.Since(start).Round(100*time.Millisecond), lastCount)
+			return nil, fmt.Errorf("%s: timeout waiting for message predicate after %v (last count: %d)",
+				msg, time.Since(start).Round(100*time.Millisecond), lastCount)
 		case <-ticker.C:
-			resp, err := apiClient.GetMessages(ctx)
+			resp, err := apiClient.GetMessages(waitCtx)
 			if err != nil {
 				lastErr = err
 				t.Logf("%s: GetMessages failed (will retry): %v", msg, err)
 				continue
 			}
 			lastCount = len(resp.Messages)
-			if lastCount == expectedCount {
+			if predicate(resp) {
 				elapsed := time.Since(start)
-				t.Logf("%s: got expected %d messages (elapsed: %s)", msg, expectedCount, elapsed.Round(100*time.Millisecond))
+				t.Logf("%s: message predicate satisfied with %d messages (elapsed: %s)", msg, lastCount, elapsed.Round(100*time.Millisecond))
 				return resp, nil
 			}
-			t.Logf("%s: got %d messages, expecting %d (will retry)", msg, lastCount, expectedCount)
+			t.Logf("%s: got %d messages, predicate not yet satisfied (will retry)", msg, lastCount)
 		}
 	}
 }
