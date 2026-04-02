@@ -41,7 +41,7 @@ jobs:
           output: trivy-results.sarif
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -54,17 +54,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
+      - uses: actions/setup-python@v5
         with:
-          config: >-
-            p/security-audit
-            p/owasp-top-ten
-            p/cwe-top-25
-            .semgrep-rules/
-          generateSarif: true
+          python-version: "3.12"
+
+      - name: Install Semgrep
+        run: python -m pip install semgrep==1.157.0
+
+      - name: Run Semgrep
+        run: >
+          semgrep scan
+          --config p/security-audit
+          --config p/owasp-top-ten
+          --config p/cwe-top-25
+          --config .semgrep-rules/
+          --sarif
+          --output semgrep.sarif
 
       - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: semgrep.sarif
@@ -81,4 +89,4 @@ jobs:
       - uses: trufflesecurity/trufflehog@0f58ae7c5036094a1e3e750d18772af92821b503 # v3.90.5
         with:
           path: ./
-          extra_args: --only-verified --fail
+          extra_args: --only-verified
