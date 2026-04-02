@@ -435,6 +435,26 @@
         ],
         "type": "object"
       },
+      "ReadyResponseBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "example": "https://example.com/schemas/ReadyResponseBody.json",
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "ready": {
+            "description": "Whether the server is ready",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ready"
+        ],
+        "type": "object"
+      },
       "ScreenUpdateBody": {
         "additionalProperties": false,
         "properties": {
@@ -939,6 +959,35 @@
           }
         },
         "summary": "Get rate limit"
+      }
+    },
+    "/ready": {
+      "get": {
+        "description": "Readiness probe for Kubernetes.",
+        "operationId": "get-ready",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponseBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Get ready"
       }
     },
     "/status": {

@@ -37,13 +37,13 @@
   "packageManager": "bun@1.2.0",
   "private": true,
   "scripts": {
-    "preinstall": "bash scripts/enforce-bun.sh",
     "build": "next build",
     "build-storybook": "storybook build",
     "deploy-gh-pages": "GITHUB_PAGES=true next build && gh-pages -d out --nojekyll -e chat -f",
     "dev": "next dev --turbopack",
     "export": "GITHUB_PAGES=true next build",
     "lint": "oxlint src/",
+    "preinstall": "bash scripts/enforce-bun.sh",
     "serve-static": "npx serve out",
     "start": "next start",
     "storybook": "storybook dev -p 6006"
