@@ -211,11 +211,17 @@ Polecat-40 receives bead 252ac72c (this bead)
 | `gt_escalate` | Create escalation for blocked work |
 | `gt_checkpoint --data=<json>` | Save crash-recovery state |
 | `gt_mail_send --to=<agent>` | Inter-agent coordination |
+| `gt_mail_check` | Read and acknowledge pending mail |
 | `gt_status --message=<text>` | Dashboard status update |
+| `gt_nudge --to=<agent>` | Send real-time wake-up nudge |
+| `gt_triage_resolve` | Resolve triage request beads |
+| `gt_mol_current` | Get current molecule step for hooked bead |
+| `gt_mol_advance` | Complete molecule step and advance |
+| `gt_bead_status <bead_id>` | Inspect current state of any bead |
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2026-03-31  
+**Document Version**: 1.1  
+**Last Updated**: 2026-04-02  
 **Owners**: Platform Team, DevEx  
 **Related**: [AGILEPLUS_SPEC.md](./AGILEPLUS_SPEC.md)
