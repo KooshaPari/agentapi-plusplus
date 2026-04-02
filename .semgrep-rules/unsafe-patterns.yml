@@ -14,11 +14,6 @@ rules:
     patterns:
       - pattern: |
           $X.unwrap()
-      - metavariable-comparison:
-          metavariable: $X
-          comparison: match_regex
-          regex: |
-            (?!(log|debug|info|warn|error)).*
     message: Use of unwrap() without error handling context. Prefer `?` operator or explicit error handling.
     languages: [rust]
     severity: MEDIUM

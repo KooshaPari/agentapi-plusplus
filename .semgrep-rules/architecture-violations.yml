@@ -11,14 +11,12 @@ rules:
     severity: MEDIUM
 
   - id: layer-violation-adapter-accessing-domain
-    patterns:
+    pattern-either:
       - pattern: |
-          mod adapters {
-              ...
-              use crate::domain::...
-              ...
-          }
-    message: Adapter layer should not directly access domain logic. Use ports/traits instead.
+          use crate::domain::$X;
+      - pattern: |
+          use crate::domain::$X::$Y;
+    message: Direct domain imports should stay out of adapter-facing layers. Prefer ports/traits instead.
     languages: [rust]
     severity: MEDIUM
 
