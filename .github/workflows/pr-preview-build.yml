@@ -32,9 +32,9 @@ jobs:
       - name: Install Chat Dependencies
         run: cd chat && bun install
 
-      - name: Run make gen and check for unstaged changes
+      - name: Regenerate tracked artifacts and check for unstaged changes
         run: |
-          make gen
+          GOFLAGS=-mod=mod go generate ./...
           ./check_unstaged.sh
 
       - name: Build
@@ -54,7 +54,9 @@ jobs:
             read -r goos goarch artifact_name <<< "$variant"
           
             echo "Building for GOOS=$goos GOARCH=$goarch..."
-            CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch BINPATH="out/$artifact_name" make build
+            mkdir -p out
+            CGO_ENABLED=0 GOFLAGS=-mod=mod GOOS=$goos GOARCH=$goarch \
+              go build -trimpath -o "out/$artifact_name" .
           done
 
       - name: Upload Build Artifact

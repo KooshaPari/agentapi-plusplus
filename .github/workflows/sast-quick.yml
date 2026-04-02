@@ -58,6 +58,7 @@ jobs:
 
   lint-rust:
     name: Rust Lint
+    if: ${{ hashFiles('**/Cargo.toml') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,4 +78,4 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Generate Go dependency inventory
-        run: go list -m -json all > license-inventory-go.json
+        run: GOFLAGS=-mod=mod go list -m -json all > license-inventory-go.json

@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "cd ../vendor/phenodocs/packages/docs && bun install",
-    "dev": "vitepress dev .",
-    "build": "vitepress build .",
-    "preview": "vitepress preview ."
+    "postinstall": "bash -lc 'if [ -d ../vendor/phenodocs/packages/docs ]; then cd ../vendor/phenodocs/packages/docs && bun install; else echo \"Skipping vendor docs install: ../vendor/phenodocs/packages/docs not present\"; fi'",
+    "dev": "node ./node_modules/vitepress/dist/node/cli.js dev .",
+    "build": "node ./node_modules/vitepress/dist/node/cli.js build .",
+    "preview": "node ./node_modules/vitepress/dist/node/cli.js preview ."
   },
   "dependencies": {
     "@phenotype/docs": "file:../vendor/phenodocs/packages/docs"

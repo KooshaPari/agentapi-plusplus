@@ -17,7 +17,7 @@ jobs:
                   go-version: "stable"
 
             - name: Test
-              run: CGO_ENABLED=0 go test -count=1 -v ./...
+              run: CGO_ENABLED=0 GOFLAGS=-mod=mod go test -count=1 -v ./...
 
     lint:
         runs-on: ubuntu-latest
@@ -35,10 +35,13 @@ jobs:
             - name: Install Chat Dependencies
               run: cd chat && bun install
 
-            - name: run linters
-              run: make lint
+            - name: Lint Go
+              run: GOFLAGS=-mod=mod go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0 run ./... --timeout 5m
+
+            - name: Lint Chat
+              run: cd chat && bun run lint
 
             - name: Check for unstaged changes
               run: |
-                  make gen
+                  GOFLAGS=-mod=mod go generate ./...
                   ./check_unstaged.sh
