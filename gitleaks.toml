@@ -1,0 +1,45 @@
+# Gitleaks configuration for agentapi-plusplus
+
+[rules]
+  # Generic API keys
+  [[rules]]
+    id = "generic-api-key"
+    description = "Generic API Key"
+    regex = '''(?i)(api[-_]?key|apikey|api_secret|api-secret)[^\s]{0,50}[\"'][0-9a-zA-Z]{16,32}[\"']'''
+    
+  # AWS keys
+  [[rules]]
+    id = "aws-access-key"
+    description = "AWS Access Key ID"
+    regex = '''AKIA[0-9A-Z]{16}'''
+    
+  # GitHub tokens
+  [[rules]]
+    id = "github-token"
+    description = "GitHub Personal Access Token"
+    regex = '''gh[pousr]_[A-Za-z0-9_]{36,}'''
+    
+  # Private keys
+  [[rules]]
+    id = "private-key"
+    description = "Private Key"
+    regex = '''-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'''
+    
+  # JWT tokens
+  [[rules]]
+    id = "jwt-token"
+    description = "JWT Token"
+    regex = '''eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*'''
+    
+  # Database connection strings
+  [[rules]]
+    id = "connection-string"
+    description = "Database Connection String"
+    regex = '''(mysql|postgres|redis|mongodb)://[^\s]+'''
+
+[allowlist]
+  description = "Allowlisted files and patterns"
+  files = [
+    '''(.*)?gitleaks\.toml''',
+    '''(.*)?gitleaks\.config''',
+  ]

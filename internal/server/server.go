@@ -8,17 +8,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/coder/agentapi/internal/middleware"
 	"github.com/coder/agentapi/internal/routing"
+	"github.com/go-chi/chi/v5"
 )
 
 // Server represents the agentapi HTTP server
 type Server struct {
-	port         int
-	router       *routing.AgentBifrost
-	agentHandler *AgentHandler
-	server       *http.Server
+	port             int
+	router           *routing.AgentBifrost
+	agentHandler     *AgentHandler
+	server           *http.Server
+	requestIDHandler *middleware.RequestIDHandler
 }
 
 // New creates a new agentapi server
@@ -28,14 +29,18 @@ func New(port int, router *routing.AgentBifrost) *Server {
 		router: router,
 	}
 	s.agentHandler = NewAgentHandler(router)
+	s.requestIDHandler = middleware.NewRequestIDHandler(30 * time.Second)
 	return s
 }
 
 // Start starts the HTTP server
 func (s *Server) Start() error {
 	r := chi.NewRouter()
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
+	if err := middleware.ApplyDefaultStack(r); err != nil {
+		return err
+	}
+
+	middleware.ReadinessCheckRoute(r)
 
 	// Health check
 	r.Get("/health", s.health)
@@ -44,17 +49,17 @@ func (s *Server) Start() error {
 	s.agentHandler.RegisterRoutes(r)
 
 	// Agent routing endpoints
-	r.Post("/v1/chat/completions", s.chatCompletions)
+	r.Post("/v1/chat/completions", s.wrapHandler(s.chatCompletions))
 
 	// Management endpoints
 	r.Route("/admin", func(r chi.Router) {
-		r.Get("/rules", s.listRules)
-		r.Post("/rules", s.setRule)
-		r.Get("/sessions", s.listSessions)
+		r.Get("/rules", s.wrapHandler(s.listRules))
+		r.Post("/rules", s.wrapHandler(s.setRule))
+		r.Get("/sessions", s.wrapHandler(s.listSessions))
 	})
 
 	// Connect to cliproxy+bifrost
-	r.HandleFunc("/proxy/*", s.proxy)
+	r.HandleFunc("/proxy/*", s.wrapHandler(s.proxy))
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.port),
@@ -62,6 +67,12 @@ func (s *Server) Start() error {
 	}
 
 	return s.server.ListenAndServe()
+}
+
+func (s *Server) wrapHandler(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.requestIDHandler.WrapHandler(next).ServeHTTP(w, r)
+	}
 }
 
 // Shutdown gracefully shuts down the server

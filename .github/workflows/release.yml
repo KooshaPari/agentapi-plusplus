@@ -1,74 +1,61 @@
-name: Build Release Binaries
+name: Release
 
 on:
-  release:
-    types: [published]
   push:
-    branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      create-artifact:
-        description: 'Create build artifact'
-        required: true
-        type: boolean
-        default: false
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  build:
-    name: Build Release Binaries
-    runs-on: ubuntu-latest-8-cores
-    if: ${{ github.repository_owner == 'coder' }}
-
+  release:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
+    outputs:
+      version: $123steps.version.outputs.version125
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: 'stable'
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
 
-    - name: Set up Bun
-      uses: oven-sh/setup-bun@v2
+      - name: Build
+        run: go build ./...
 
-    - name: Install Chat Dependencies
-      run: cd chat && bun install
+      - name: Test
+        run: go test ./... -v -race
 
-    - name: Run make gen and check for unstaged changes
-      run: |
-        make gen
-        ./check_unstaged.sh
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --always --abbrev=7)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Build and Upload
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: bash
-      run: |
-        build_variants=(
-          "linux amd64 agentapi-linux-amd64"
-          "linux arm64 agentapi-linux-arm64"
-          "darwin amd64 agentapi-darwin-amd64"
-          "darwin arm64 agentapi-darwin-arm64"
-          "windows amd64 agentapi-windows-amd64.exe"
-        )
+      - name: Publish to Go proxy
+        run: |
+          # Go packages are published automatically via git tags
+          git tag v$123steps.version.outputs.version125
+          git push origin v$123steps.version.outputs.version125
+      
 
-        for variant in "${build_variants[@]}"; do
-          read -r goos goarch artifact_name <<< "$variant"
+  promote:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-          echo "Building for GOOS=$goos GOARCH=$goarch..."
-          CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch BINPATH="out/$artifact_name" make build
-        done
-
-    - name: Upload Build Artifact
-      if: ${{ inputs.create-artifact }}
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: agentapi-build
-        path: ${{ github.workspace }}/out
-        retention-days: 7
-
-    - name: Upload Release Assets
-      if: ${{ github.event_name == 'release' || github.ref == 'refs/heads/main' }}
-      run: gh release upload "$RELEASE_TAG" "$GITHUB_WORKSPACE"/out/* --clobber
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'preview' }}
+      - name: Promote to staging
+        uses: KooshaPari/phenotypeActions/promote@main
+        with:
+          version: $123needs.release.outputs.version125
+          channel: beta
+          registry: go_proxy

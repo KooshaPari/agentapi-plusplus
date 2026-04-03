@@ -1,0 +1,25 @@
+# Codecov configuration for agentapi-plusplus
+
+codecov:
+  require_ci_to_pass: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 2%
+    patch:
+      default:
+        target: 80%
+
+parsers:
+  golang:
+    partials_as_hits: true
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default

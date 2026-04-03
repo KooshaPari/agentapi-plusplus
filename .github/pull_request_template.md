@@ -1,30 +1,19 @@
+# Pull Request Description
+
 ## Summary
+<!-- What does this PR do? -->
 
-<!-- Describe what this PR does and why it is needed. -->
-
-## Changes
-
-- 
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
 
 ## Testing
+<!-- How was this tested? -->
 
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing completed
-- [ ] Test coverage maintained or improved
-
-## Validation
-
-- [ ] Lint/format checks passed
-- [ ] Build/test commands documented and successful
-- [ ] Documentation updated (if needed)
-
-## Merge Readiness
-
-- [ ] PR is labeled `automerge` for automatic merge flow (optional)
-- [ ] Conflicts resolved
-
-## Related Issues
-
-Closes: 
-
+## Checklist
+- [ ] Code follows project style guidelines
+- [ ] Self-review completed
+- [ ] Tests added/updated
+- [ ] Documentation updated
