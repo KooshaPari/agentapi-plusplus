@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	st "github.com/coder/agentapi/lib/screentracker"
+	st "github.com/github.com/KooshaPari/agentapi-plusplus/lib/screentracker"
 )
 
 const testTimeout = 10 * time.Second

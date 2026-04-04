@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/ActiveState/termtest/xpty"
-	"github.com/coder/agentapi/lib/logctx"
-	"github.com/coder/agentapi/lib/util"
+	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/logctx"
+	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/util"
 	"github.com/coder/quartz"
 	"golang.org/x/xerrors"
 )
@@ -85,14 +85,12 @@ func StartProcess(ctx context.Context, args StartProcessConfig) (*Process, error
 		for {
 			r, _, err := pp.ReadRune()
 			if err != nil {
-				if err == io.EOF {
-					logger.Info("Pseudo terminal reached EOF, stopping read loop")
-				} else {
-					logger.Error("Error reading from pseudo terminal, terminal will stop updating",
-						"error", err,
-						"context", "process output reader goroutine",
-					)
+				if err != io.EOF {
+					logger.Error("Error reading from pseudo terminal", "error", err)
 				}
+				// TODO: handle this error better. if this happens, the terminal
+				// state will never be updated anymore and the process will appear
+				// unresponsive.
 				return
 			}
 			process.screenUpdateLock.Lock()
@@ -129,7 +127,9 @@ func (p *Process) ReadScreen() string {
 			return state
 		}
 		p.screenUpdateLock.RUnlock()
-		<-util.After(p.clock, 16*time.Millisecond)
+		t := p.clock.NewTimer(16 * time.Millisecond)
+		<-t.C
+		t.Stop()
 	}
 	return p.xp.State.String()
 }
@@ -154,9 +154,11 @@ func (p *Process) Close(logger *slog.Logger, timeout time.Duration) error {
 		close(exited)
 	}()
 
+	timeoutTimer := p.clock.NewTimer(timeout)
+	defer timeoutTimer.Stop()
 	var exitErr error
 	select {
-	case <-util.After(p.clock, timeout):
+	case <-timeoutTimer.C:
 		if err := p.execCmd.Process.Kill(); err != nil {
 			exitErr = xerrors.Errorf("failed to forcefully kill the process: %w", err)
 		}

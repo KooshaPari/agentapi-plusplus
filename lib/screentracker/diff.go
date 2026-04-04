@@ -3,7 +3,7 @@ package screentracker
 import (
 	"strings"
 
-	"github.com/coder/agentapi/lib/msgfmt"
+	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
 )
 
 // screenDiff compares two screen states and attempts to find latest message of the given agent type.
@@ -31,9 +31,7 @@ func screenDiff(oldScreen, newScreen string, agentType msgfmt.AgentType) string 
 	firstNonMatchingLine := len(newLines)
 	for i, line := range newLines[dynamicHeaderEnd+1:] {
 		if !oldLinesMap[line] {
-			// Adjust index for the slice offset (dynamicHeaderEnd + 1)
-			// to get the correct position in the original newLines array
-			firstNonMatchingLine = i + dynamicHeaderEnd + 1
+			firstNonMatchingLine = i
 			break
 		}
 	}

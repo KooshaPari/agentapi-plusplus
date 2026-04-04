@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coder/agentapi/lib/msgfmt"
-	"github.com/coder/agentapi/lib/util"
+	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
+	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/util"
 	"github.com/coder/quartz"
 	"golang.org/x/xerrors"
 )
@@ -355,12 +355,6 @@ func (c *PTYConversation) snapshotLocked(screen string) {
 	c.updateLastAgentMessageLocked(screen, snapshot.timestamp)
 }
 
-// isAskUserQuestionPrompt detects if the screen contains an AskUserQuestion TUI prompt
-// by checking for the "Enter to select" indicator that appears in interactive menus.
-func isAskUserQuestionPrompt(screen string) bool {
-	return strings.Contains(screen, "Enter to select")
-}
-
 func (c *PTYConversation) Send(messageParts ...MessagePart) error {
 	// Validate message content before enqueueing
 	message := buildStringFromMessageParts(messageParts)
@@ -372,12 +366,7 @@ func (c *PTYConversation) Send(messageParts ...MessagePart) error {
 	}
 
 	c.lock.Lock()
-	// Auto-skip status check for AskUserQuestion prompts
-	// These interactive TUI menus never stabilize because the cursor keeps blinking
-	currentScreen := c.cfg.AgentIO.ReadScreen()
-	skipCheck := isAskUserQuestionPrompt(currentScreen)
-
-	if !skipCheck && c.statusLocked() != ConversationStatusStable {
+	if c.statusLocked() != ConversationStatusStable {
 		c.lock.Unlock()
 		return ErrMessageValidationChanging
 	}
@@ -439,11 +428,14 @@ func (c *PTYConversation) writeStabilize(ctx context.Context, messageParts ...Me
 	}, func() (bool, error) {
 		screen := c.cfg.AgentIO.ReadScreen()
 		if screen != screenBeforeMessage {
+			stabilityTimer := c.cfg.Clock.NewTimer(1 * time.Second)
 			select {
 			case <-ctx.Done():
+				stabilityTimer.Stop()
 				return false, ctx.Err()
-			case <-util.After(c.cfg.Clock, 1*time.Second):
+			case <-stabilityTimer.C:
 			}
+			stabilityTimer.Stop()
 			newScreen := c.cfg.AgentIO.ReadScreen()
 			return newScreen == screen, nil
 		}
@@ -469,11 +461,14 @@ func (c *PTYConversation) writeStabilize(ctx context.Context, messageParts ...Me
 				return false, xerrors.Errorf("failed to write carriage return: %w", err)
 			}
 		}
+		crTimer := c.cfg.Clock.NewTimer(25 * time.Millisecond)
 		select {
 		case <-ctx.Done():
+			crTimer.Stop()
 			return false, ctx.Err()
-		case <-util.After(c.cfg.Clock, 25*time.Millisecond):
+		case <-crTimer.C:
 		}
+		crTimer.Stop()
 		screen := c.cfg.AgentIO.ReadScreen()
 
 		return screen != screenBeforeCarriageReturn, nil
@@ -546,19 +541,6 @@ func (c *PTYConversation) Messages() []ConversationMessage {
 	defer c.lock.Unlock()
 
 	return c.messagesLocked()
-}
-
-func (c *PTYConversation) ClearMessages() {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	c.messages = []ConversationMessage{
-		{
-			Message: "",
-			Role:    ConversationRoleAgent,
-			Time:    c.cfg.Clock.Now(),
-		},
-	}
 }
 
 // messagesLocked returns a copy of messages. Caller MUST hold c.lock.
