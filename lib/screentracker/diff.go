@@ -3,7 +3,7 @@ package screentracker
 import (
 	"strings"
 
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
+	"github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
 )
 
 // screenDiff compares two screen states and attempts to find latest message of the given agent type.

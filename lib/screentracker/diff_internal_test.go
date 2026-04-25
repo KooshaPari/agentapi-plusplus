@@ -5,7 +5,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
+	"github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
 	"github.com/stretchr/testify/assert"
 )
 

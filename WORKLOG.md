@@ -1,5 +1,7 @@
 # AgentAPI++ Worklog
 
+
+**Category: DEPENDENCIES**
 ## Date: 2026-02-24
 
 ### Summary

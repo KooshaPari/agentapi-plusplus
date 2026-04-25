@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/util"
+	"github.com/KooshaPari/agentapi-plusplus/lib/util"
 	"github.com/danielgtaylor/huma/v2"
 	"golang.org/x/xerrors"
 )

@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/ActiveState/termtest/xpty"
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/logctx"
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/util"
+	"github.com/KooshaPari/agentapi-plusplus/lib/logctx"
+	"github.com/KooshaPari/agentapi-plusplus/lib/util"
 	"github.com/coder/quartz"
 	"golang.org/x/xerrors"
 )

@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
-	"github.com/github.com/KooshaPari/agentapi-plusplus/lib/util"
+	"github.com/KooshaPari/agentapi-plusplus/lib/msgfmt"
+	"github.com/KooshaPari/agentapi-plusplus/lib/util"
 	"github.com/coder/quartz"
 	"golang.org/x/xerrors"
 )
