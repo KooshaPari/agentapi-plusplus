@@ -4,6 +4,7 @@ vars:
   DETECTED_LANGUAGES: Go, Bun/Node
   GO_CACHE_DIR: .cache/go-build
   GO_TMP_DIR: .cache/go-tmp
+  GO_PACKAGE_PARALLELISM: '1'
 
 tasks:
   default:
@@ -28,7 +29,7 @@ tasks:
           export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
           export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
-          go build -o ./agentapi ./main.go
+          go build -p {{.GO_PACKAGE_PARALLELISM}} -o ./agentapi ./main.go
         '
 
   build:chat:
@@ -72,7 +73,7 @@ tasks:
           export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
           export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
-          go test -short ./...
+          go test -p {{.GO_PACKAGE_PARALLELISM}} -short ./...
         '
 
   lint:
@@ -99,7 +100,7 @@ tasks:
           mkdir -p "$GOCACHE" "$GOTMPDIR"
           git ls-files "*.go" ":!:agentapi-plusplus/**" | xargs gofmt -l | tee /tmp/agentapi-gofmt.out
           test ! -s /tmp/agentapi-gofmt.out
-          go vet ./...
+          go vet -p {{.GO_PACKAGE_PARALLELISM}} ./...
         '
 
   lint:chat:
