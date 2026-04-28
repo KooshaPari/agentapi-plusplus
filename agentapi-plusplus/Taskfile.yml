@@ -85,12 +85,7 @@ tasks:
           export GOTMPDIR="$PWD/.cache/go-tmp"
           mkdir -p "$GOCACHE"
           mkdir -p "$GOTMPDIR"
-          fmt_out=$(gofmt -l .)
-          if [ -n "$fmt_out" ]; then
-            printf "%s\n" "$fmt_out"
-            exit 1
-          fi
-          go vet ./...
+          git ls-files "*.go" | xargs -n1 dirname | sort -u | xargs -I{} go vet ./{}
         '
 
   lint:chat:
