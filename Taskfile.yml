@@ -40,9 +40,7 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          if [ ! -d node_modules ]; then
-            bun install --frozen-lockfile
-          fi
+          bun install --frozen-lockfile
           bun run build
         '
 
@@ -62,6 +60,7 @@ tasks:
     desc: Run tests for detected language targets ({{.DETECTED_LANGUAGES}}).
     cmds:
       - task: test:go
+      - task: test:chat
 
   test:go:
     internal: true
@@ -74,6 +73,22 @@ tasks:
           export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
           go test -p {{.GO_PACKAGE_PARALLELISM}} -short ./...
+        '
+
+  test:chat:
+    internal: true
+    status:
+      - test ! -f package.json
+    dir: chat
+    cmds:
+      - |
+        bash -euo pipefail -c '
+          if bun run | grep -Eq "^ +test($|:)"; then
+            bun install --frozen-lockfile
+            bun run test
+          else
+            printf "No chat test script detected; skipping Bun/Node tests.\n"
+          fi
         '
 
   lint:
@@ -111,9 +126,7 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          if [ ! -d node_modules ]; then
-            bun install --frozen-lockfile
-          fi
+          bun install --frozen-lockfile
           bun run lint
         '
 
