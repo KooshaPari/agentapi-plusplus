@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/coder/agentapi/internal/routing"
+	"github.com/go-chi/chi/v5"
 )
 
 // Traces to: FR-HTTP-001

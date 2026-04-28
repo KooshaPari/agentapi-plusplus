@@ -19,8 +19,8 @@ type ScriptEntry struct {
 type Recording struct {
 	Version float64 `json:"version"`
 	Width   int     `json:"width"`
-	Height int     `json:"height"`
-	Lines  []Event  `json:"lines"`
+	Height  int     `json:"height"`
+	Lines   []Event `json:"lines"`
 }
 
 // Event represents a single asciinema event

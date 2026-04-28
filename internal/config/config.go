@@ -27,23 +27,23 @@ type AgentAPIConfig struct {
 
 // AgentConfig represents agent-related configuration.
 type AgentConfig struct {
-	Type           string `mapstructure:"type"`
-	InitialPrompt  string `mapstructure:"initial_prompt"`
+	Type          string `mapstructure:"type"`
+	InitialPrompt string `mapstructure:"initial_prompt"`
 }
 
 // LoadConfig loads the configuration from a file and environment variables.
 func LoadConfig(filePath string) (*AgentAPIConfig, error) {
 	defaults := map[string]any{
-		"server.port":             3284,
-		"server.host":             "localhost",
-		"server.chat_base_path":   "/chat",
-		"server.allowed_hosts":    []string{"localhost", "127.0.0.1", "[::1]"},
-		"server.allowed_origins":  []string{"http://localhost:3284", "http://localhost:3000", "http://localhost:3001"},
-		"server.term_width":       uint16(80),
-		"server.term_height":      uint16(1000),
-		"server.print_openapi":    false,
-		"agent.type":              "",
-		"agent.initial_prompt":    "",
+		"server.port":            3284,
+		"server.host":            "localhost",
+		"server.chat_base_path":  "/chat",
+		"server.allowed_hosts":   []string{"localhost", "127.0.0.1", "[::1]"},
+		"server.allowed_origins": []string{"http://localhost:3284", "http://localhost:3000", "http://localhost:3001"},
+		"server.term_width":      uint16(80),
+		"server.term_height":     uint16(1000),
+		"server.print_openapi":   false,
+		"agent.type":             "",
+		"agent.initial_prompt":   "",
 	}
 
 	viper.SetEnvPrefix("AGENTAPI")
@@ -94,15 +94,15 @@ func LoadConfigWithEnv(filePath string) (*AgentAPIConfig, error) {
 // BindEnvVars binds specific environment variables to configuration keys.
 func BindEnvVars() error {
 	envBindings := map[string]string{
-		"server.port":             "AGENTAPI_PORT",
-		"server.host":             "AGENTAPI_HOST",
-		"server.chat_base_path":   "AGENTAPI_CHAT_BASE_PATH",
-		"server.allowed_hosts":    "AGENTAPI_ALLOWED_HOSTS",
-		"server.allowed_origins":  "AGENTAPI_ALLOWED_ORIGINS",
-		"server.term_width":       "AGENTAPI_TERM_WIDTH",
-		"server.term_height":      "AGENTAPI_TERM_HEIGHT",
-		"agent.type":              "AGENTAPI_AGENT_TYPE",
-		"agent.initial_prompt":    "AGENTAPI_INITIAL_PROMPT",
+		"server.port":            "AGENTAPI_PORT",
+		"server.host":            "AGENTAPI_HOST",
+		"server.chat_base_path":  "AGENTAPI_CHAT_BASE_PATH",
+		"server.allowed_hosts":   "AGENTAPI_ALLOWED_HOSTS",
+		"server.allowed_origins": "AGENTAPI_ALLOWED_ORIGINS",
+		"server.term_width":      "AGENTAPI_TERM_WIDTH",
+		"server.term_height":     "AGENTAPI_TERM_HEIGHT",
+		"agent.type":             "AGENTAPI_AGENT_TYPE",
+		"agent.initial_prompt":   "AGENTAPI_INITIAL_PROMPT",
 	}
 
 	for key, envVar := range envBindings {
