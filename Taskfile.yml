@@ -2,9 +2,13 @@ version: '3'
 
 vars:
   DETECTED_LANGUAGES: Go, Bun/Node
+  FRONTEND_DIR: chat
+  DOCS_DIR: docs
+  GO_BINARY: agentapi
   GO_CACHE_DIR: .cache/go-build
   GO_TMP_DIR: .cache/go-tmp
   GO_PACKAGE_PARALLELISM: '1'
+  GO_PACKAGES: ./...
 
 tasks:
   default:
@@ -14,6 +18,11 @@ tasks:
 
   build:
     desc: Build detected language targets ({{.DETECTED_LANGUAGES}}).
+    summary: |
+      Detected targets:
+        - Go module at the repository root
+        - Bun/Node frontend in {{.FRONTEND_DIR}}/
+        - npm/VitePress docs in {{.DOCS_DIR}}/ when the local docs vendor exists
     cmds:
       - task: build:go
       - task: build:chat
@@ -29,14 +38,14 @@ tasks:
           export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
           export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
-          go build -p {{.GO_PACKAGE_PARALLELISM}} -o ./agentapi ./main.go
+          go build -p {{.GO_PACKAGE_PARALLELISM}} -o ./{{.GO_BINARY}} ./main.go
         '
 
   build:chat:
     internal: true
     status:
       - test ! -f package.json
-    dir: chat
+    dir: '{{.FRONTEND_DIR}}'
     cmds:
       - |
         bash -euo pipefail -c '
@@ -48,7 +57,7 @@ tasks:
     internal: true
     status:
       - test ! -f package.json || test ! -d ../vendor/phenodocs/packages/docs
-    dir: docs
+    dir: '{{.DOCS_DIR}}'
     cmds:
       - |
         bash -euo pipefail -c '
@@ -58,6 +67,8 @@ tasks:
 
   test:
     desc: Run tests for detected language targets ({{.DETECTED_LANGUAGES}}).
+    summary: |
+      Runs the root Go test suite and any detected Bun/Node test script.
     cmds:
       - task: test:go
       - task: test:chat
@@ -72,14 +83,14 @@ tasks:
           export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
           export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
-          go test -p {{.GO_PACKAGE_PARALLELISM}} -short ./...
+          go test -p {{.GO_PACKAGE_PARALLELISM}} -short {{.GO_PACKAGES}}
         '
 
   test:chat:
     internal: true
     status:
       - test ! -f package.json
-    dir: chat
+    dir: '{{.FRONTEND_DIR}}'
     cmds:
       - |
         bash -euo pipefail -c '
@@ -93,6 +104,8 @@ tasks:
 
   lint:
     desc: Run linters for detected language targets ({{.DETECTED_LANGUAGES}}).
+    summary: |
+      Validates Taskfile syntax, Go formatting/vet checks, and the frontend lint script.
     cmds:
       - task: lint:taskfile
       - task: lint:go
@@ -115,14 +128,14 @@ tasks:
           mkdir -p "$GOCACHE" "$GOTMPDIR"
           git ls-files "*.go" ":!:agentapi-plusplus/**" | xargs gofmt -l | tee /tmp/agentapi-gofmt.out
           test ! -s /tmp/agentapi-gofmt.out
-          go vet -p {{.GO_PACKAGE_PARALLELISM}} ./...
+          go vet -p {{.GO_PACKAGE_PARALLELISM}} {{.GO_PACKAGES}}
         '
 
   lint:chat:
     internal: true
     status:
       - test ! -f package.json
-    dir: chat
+    dir: '{{.FRONTEND_DIR}}'
     cmds:
       - |
         bash -euo pipefail -c '
@@ -132,6 +145,8 @@ tasks:
 
   clean:
     desc: Remove generated build artifacts for detected language targets ({{.DETECTED_LANGUAGES}}).
+    summary: |
+      Removes root Go build/cache output and generated frontend/docs build artifacts.
     cmds:
       - task: clean:go
       - task: clean:chat
@@ -154,7 +169,7 @@ tasks:
         Path(os.environ["GOCACHE"]).mkdir(parents=True, exist_ok=True)
         Path(os.environ["GOTMPDIR"]).mkdir(parents=True, exist_ok=True)
         subprocess.run(["go", "clean", "-cache", "-testcache"], check=True)
-        for path in [Path("agentapi"), Path("{{.GO_CACHE_DIR}}"), Path("{{.GO_TMP_DIR}}")]:
+        for path in [Path("{{.GO_BINARY}}"), Path("{{.GO_CACHE_DIR}}"), Path("{{.GO_TMP_DIR}}")]:
             if path.is_file() or path.is_symlink():
                 path.unlink()
             elif path.is_dir():
@@ -163,30 +178,30 @@ tasks:
 
   clean:chat:
     internal: true
-    status:
-      - test ! -f chat/package.json
     cmds:
       - |
         python3 - <<'PY'
         from pathlib import Path
         import shutil
 
-        for path in [Path("chat/.next"), Path("chat/out"), Path("chat/.turbo")]:
+        for path in [
+            Path("{{.FRONTEND_DIR}}/.next"),
+            Path("{{.FRONTEND_DIR}}/out"),
+            Path("{{.FRONTEND_DIR}}/.turbo"),
+        ]:
             if path.exists():
                 shutil.rmtree(path)
         PY
 
   clean:docs:
     internal: true
-    status:
-      - test ! -f docs/package.json
     cmds:
       - |
         python3 - <<'PY'
         from pathlib import Path
         import shutil
 
-        for path in [Path("docs/.vitepress/cache")]:
+        for path in [Path("{{.DOCS_DIR}}/.vitepress/cache")]:
             if path.exists():
                 shutil.rmtree(path)
         PY
