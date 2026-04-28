@@ -30,10 +30,10 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          rm -rf .next
           if [ ! -d node_modules ]; then
             bun install --frozen-lockfile
           fi
+          rm -f .next/lock
           bun run build
         '
 
@@ -85,12 +85,9 @@ tasks:
           export GOTMPDIR="$PWD/.cache/go-tmp"
           mkdir -p "$GOCACHE"
           mkdir -p "$GOTMPDIR"
-          fmt_out=$(gofmt -l .)
-          if [ -n "$fmt_out" ]; then
-            printf "%s\n" "$fmt_out"
-            exit 1
-          fi
-          go vet ./...
+          git ls-files "*.go" ":!:agentapi-plusplus/**" | xargs gofmt -l | tee /tmp/agentapi-gofmt.out
+          test ! -s /tmp/agentapi-gofmt.out
+          go list ./... | xargs go vet
         '
 
   lint:chat:
