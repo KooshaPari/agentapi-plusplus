@@ -16,7 +16,9 @@ tasks:
       - |
         bash -euo pipefail -c '
           export GOCACHE="$PWD/.cache/go-build"
+          export GOTMPDIR="$PWD/.cache/go-tmp"
           mkdir -p "$GOCACHE"
+          mkdir -p "$GOTMPDIR"
           go build -o ./agentapi ./main.go
         '
 
@@ -26,17 +28,26 @@ tasks:
       - test ! -f package.json
     dir: chat
     cmds:
-      - bun install --frozen-lockfile
-      - bun run build
+      - |
+        bash -euo pipefail -c '
+          rm -rf .next
+          if [ ! -d node_modules ]; then
+            bun install --frozen-lockfile
+          fi
+          bun run build
+        '
 
   build:docs:
     internal: true
     status:
-      - test ! -f package.json
+      - test ! -f package.json || test ! -d ../vendor/phenodocs/packages/docs
     dir: docs
     cmds:
-      - npm install
-      - npm run build
+      - |
+        bash -euo pipefail -c '
+          npm ci --ignore-scripts
+          node ./node_modules/vitepress/dist/node/cli.js build .
+        '
 
   test:
     desc: Run tests for detected language targets.
@@ -51,7 +62,9 @@ tasks:
       - |
         bash -euo pipefail -c '
           export GOCACHE="$PWD/.cache/go-build"
+          export GOTMPDIR="$PWD/.cache/go-tmp"
           mkdir -p "$GOCACHE"
+          mkdir -p "$GOTMPDIR"
           go test -short ./...
         '
 
@@ -69,7 +82,14 @@ tasks:
       - |
         bash -euo pipefail -c '
           export GOCACHE="$PWD/.cache/go-build"
+          export GOTMPDIR="$PWD/.cache/go-tmp"
           mkdir -p "$GOCACHE"
+          mkdir -p "$GOTMPDIR"
+          fmt_out=$(gofmt -l .)
+          if [ -n "$fmt_out" ]; then
+            printf "%s\n" "$fmt_out"
+            exit 1
+          fi
           go vet ./...
         '
 
@@ -77,10 +97,15 @@ tasks:
     internal: true
     status:
       - test ! -f chat/package.json
-    dir: chat
     cmds:
-      - bun install --frozen-lockfile
-      - bun run lint
+      - |
+        bash -euo pipefail -c '
+          cd chat
+          if [ ! -d node_modules ]; then
+            bun install --frozen-lockfile
+          fi
+          bun run lint
+        '
 
   clean:
     desc: Remove generated build artifacts.
@@ -98,13 +123,15 @@ tasks:
         python3 - <<'PY'
         from pathlib import Path
         import os
-        import subprocess
         import shutil
+        import subprocess
 
         os.environ["GOCACHE"] = str(Path(".cache/go-build").resolve())
+        os.environ["GOTMPDIR"] = str(Path(".cache/go-tmp").resolve())
         Path(os.environ["GOCACHE"]).mkdir(parents=True, exist_ok=True)
+        Path(os.environ["GOTMPDIR"]).mkdir(parents=True, exist_ok=True)
         subprocess.run(["go", "clean", "-cache", "-testcache"], check=True)
-        for path in [Path("agentapi"), Path("coverage.out"), Path(".cache/go-build")]:
+        for path in [Path("agentapi"), Path(".cache/go-build"), Path(".cache/go-tmp")]:
             if path.is_file() or path.is_symlink():
                 path.unlink()
             elif path.is_dir():
@@ -136,7 +163,7 @@ tasks:
         from pathlib import Path
         import shutil
 
-        for path in [Path("docs/.vitepress/dist"), Path("docs/.vitepress/cache"), Path("docs/.generated")]:
+        for path in [Path("docs/.vitepress/cache")]:
             if path.exists():
                 shutil.rmtree(path)
         PY
