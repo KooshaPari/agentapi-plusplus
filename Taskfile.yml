@@ -30,10 +30,10 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          rm -rf .next
           if [ ! -d node_modules ]; then
             bun install --frozen-lockfile
           fi
+          rm -f .next/lock
           bun run build
         '
 
@@ -85,7 +85,12 @@ tasks:
           export GOTMPDIR="$PWD/.cache/go-tmp"
           mkdir -p "$GOCACHE"
           mkdir -p "$GOTMPDIR"
-          git ls-files "*.go" | xargs -n1 dirname | sort -u | xargs -I{} go vet ./{}
+          fmt_out=$(gofmt -l .)
+          if [ -n "$fmt_out" ]; then
+            printf "%s\n" "$fmt_out"
+            exit 1
+          fi
+          go vet ./...
         '
 
   lint:chat:
