@@ -1,8 +1,16 @@
 version: '3'
 
+vars:
+  DETECTED_LANGUAGES: Go, Bun/Node
+
 tasks:
+  default:
+    desc: List common tasks for detected language targets.
+    cmds:
+      - task --list
+
   build:
-    desc: Build every detected language target.
+    desc: Build every detected language target ({{.DETECTED_LANGUAGES}}).
     cmds:
       - task: build:go
       - task: build:chat
@@ -50,7 +58,7 @@ tasks:
         '
 
   test:
-    desc: Run tests for detected language targets.
+    desc: Run tests for detected language targets ({{.DETECTED_LANGUAGES}}).
     cmds:
       - task: test:go
 
@@ -69,7 +77,7 @@ tasks:
         '
 
   lint:
-    desc: Run linters for detected language targets.
+    desc: Run linters for detected language targets ({{.DETECTED_LANGUAGES}}).
     cmds:
       - task: lint:go
       - task: lint:chat
@@ -105,7 +113,7 @@ tasks:
         '
 
   clean:
-    desc: Remove generated build artifacts.
+    desc: Remove generated build artifacts for detected language targets ({{.DETECTED_LANGUAGES}}).
     cmds:
       - task: clean:go
       - task: clean:chat
