@@ -2,6 +2,8 @@ version: '3'
 
 vars:
   DETECTED_LANGUAGES: Go, Bun/Node
+  GO_CACHE_DIR: .cache/go-build
+  GO_TMP_DIR: .cache/go-tmp
 
 tasks:
   default:
@@ -23,8 +25,8 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          export GOCACHE="$PWD/.cache/go-build"
-          export GOTMPDIR="$PWD/.cache/go-tmp"
+          export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
+          export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
           go build -o ./agentapi ./main.go
         '
@@ -67,8 +69,8 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          export GOCACHE="$PWD/.cache/go-build"
-          export GOTMPDIR="$PWD/.cache/go-tmp"
+          export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
+          export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
           go test -short ./...
         '
@@ -92,12 +94,12 @@ tasks:
     cmds:
       - |
         bash -euo pipefail -c '
-          export GOCACHE="$PWD/.cache/go-build"
-          export GOTMPDIR="$PWD/.cache/go-tmp"
+          export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
+          export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
           mkdir -p "$GOCACHE" "$GOTMPDIR"
           git ls-files "*.go" ":!:agentapi-plusplus/**" | xargs gofmt -l | tee /tmp/agentapi-gofmt.out
           test ! -s /tmp/agentapi-gofmt.out
-          go list ./... | xargs go vet
+          go vet ./...
         '
 
   lint:chat:
@@ -133,12 +135,12 @@ tasks:
         import shutil
         import subprocess
 
-        os.environ["GOCACHE"] = str(Path(".cache/go-build").resolve())
-        os.environ["GOTMPDIR"] = str(Path(".cache/go-tmp").resolve())
+        os.environ["GOCACHE"] = str(Path("{{.GO_CACHE_DIR}}").resolve())
+        os.environ["GOTMPDIR"] = str(Path("{{.GO_TMP_DIR}}").resolve())
         Path(os.environ["GOCACHE"]).mkdir(parents=True, exist_ok=True)
         Path(os.environ["GOTMPDIR"]).mkdir(parents=True, exist_ok=True)
         subprocess.run(["go", "clean", "-cache", "-testcache"], check=True)
-        for path in [Path("agentapi"), Path(".cache/go-build"), Path(".cache/go-tmp")]:
+        for path in [Path("agentapi"), Path("{{.GO_CACHE_DIR}}"), Path("{{.GO_TMP_DIR}}")]:
             if path.is_file() or path.is_symlink():
                 path.unlink()
             elif path.is_dir():
