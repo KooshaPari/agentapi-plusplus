@@ -1,7 +1,7 @@
 version: '3'
 
 vars:
-  DETECTED_LANGUAGES: Go, Bun/Node
+  DETECTED_LANGUAGES: Go, Bun/Node, VitePress docs
   FRONTEND_DIR: chat
   DOCS_DIR: docs
   GO_BINARY: agentapi
