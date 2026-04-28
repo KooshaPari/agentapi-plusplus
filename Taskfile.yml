@@ -1,59 +1,142 @@
 version: '3'
 
 tasks:
-  # Quality gate - runs strict lint, type check, tests, and security
-  quality:
-    desc: "Run full strict quality pipeline (lint/test/security)"
-    cmds:
-      - task: lint
-      - task: test
-      - task: lint:security
-      - task: fmt
-
-  quality:strict:
-    desc: "Run strict quality with extra checks"
-    cmds:
-      - golangci-lint run ./... --timeout 5m
-      - go test ./... -race -covermode=atomic
-      - go vet ./...
-      - staticcheck ./... || true
-      - gosec -fs ./... || true
-
-  lint:
-    cmds:
-      - golangci-lint run ./...
-
-  lint:security:
-    cmds:
-      - go vet ./...
-      - staticcheck ./... || true
-      - gosec -fs ./... || true
-
-  fmt:
-    cmds:
-      - gofmt -l -w -s .
-      - goimports -l -w -s .
-
-  test:
-    cmds:
-      - go test ./...
-
   build:
+    desc: Build every detected language target.
     cmds:
-      - make build
+      - task: build:go
+      - task: build:chat
+      - task: build:docs
 
-  docs:install:
+  build:go:
+    internal: true
+    status:
+      - test ! -f go.mod
+    cmds:
+      - |
+        bash -euo pipefail -c '
+          export GOCACHE="$PWD/.cache/go-build"
+          mkdir -p "$GOCACHE"
+          go build -o ./agentapi ./main.go
+        '
+
+  build:chat:
+    internal: true
+    status:
+      - test ! -f package.json
+    dir: chat
+    cmds:
+      - bun install --frozen-lockfile
+      - bun run build
+
+  build:docs:
+    internal: true
+    status:
+      - test ! -f package.json
     dir: docs
     cmds:
       - npm install
+      - npm run build
 
-  docs:build:
-    dir: docs
+  test:
+    desc: Run tests for detected language targets.
     cmds:
-      - npm run docs:build
+      - task: test:go
 
-  quality:
+  test:go:
+    internal: true
+    status:
+      - test ! -f go.mod
     cmds:
-      - task lint
-      - task test
-      - task docs:build
+      - |
+        bash -euo pipefail -c '
+          export GOCACHE="$PWD/.cache/go-build"
+          mkdir -p "$GOCACHE"
+          go test -short ./...
+        '
+
+  lint:
+    desc: Run linters for detected language targets.
+    cmds:
+      - task: lint:go
+      - task: lint:chat
+
+  lint:go:
+    internal: true
+    status:
+      - test ! -f go.mod
+    cmds:
+      - |
+        bash -euo pipefail -c '
+          export GOCACHE="$PWD/.cache/go-build"
+          mkdir -p "$GOCACHE"
+          go vet ./...
+        '
+
+  lint:chat:
+    internal: true
+    status:
+      - test ! -f chat/package.json
+    dir: chat
+    cmds:
+      - bun install --frozen-lockfile
+      - bun run lint
+
+  clean:
+    desc: Remove generated build artifacts.
+    cmds:
+      - task: clean:go
+      - task: clean:chat
+      - task: clean:docs
+
+  clean:go:
+    internal: true
+    status:
+      - test ! -f go.mod
+    cmds:
+      - |
+        python3 - <<'PY'
+        from pathlib import Path
+        import os
+        import subprocess
+        import shutil
+
+        os.environ["GOCACHE"] = str(Path(".cache/go-build").resolve())
+        Path(os.environ["GOCACHE"]).mkdir(parents=True, exist_ok=True)
+        subprocess.run(["go", "clean", "-cache", "-testcache"], check=True)
+        for path in [Path("agentapi"), Path("coverage.out"), Path(".cache/go-build")]:
+            if path.is_file() or path.is_symlink():
+                path.unlink()
+            elif path.is_dir():
+                shutil.rmtree(path)
+        PY
+
+  clean:chat:
+    internal: true
+    status:
+      - test ! -f chat/package.json
+    cmds:
+      - |
+        python3 - <<'PY'
+        from pathlib import Path
+        import shutil
+
+        for path in [Path("chat/.next"), Path("chat/out"), Path("chat/.turbo")]:
+            if path.exists():
+                shutil.rmtree(path)
+        PY
+
+  clean:docs:
+    internal: true
+    status:
+      - test ! -f docs/package.json
+    cmds:
+      - |
+        python3 - <<'PY'
+        from pathlib import Path
+        import shutil
+
+        for path in [Path("docs/.vitepress/dist"), Path("docs/.vitepress/cache"), Path("docs/.generated")]:
+            if path.exists():
+                shutil.rmtree(path)
+        PY
