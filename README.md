@@ -1,5 +1,7 @@
 # AgentAPI++ (KooshaPari Fork)
 
+[![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
+
 Multi-model AI routing gateway extending Anthropic's agentapi — Phenotype org fork (74 commits ahead, 7 fixes staged for upstream).
 
 **Status:** active
