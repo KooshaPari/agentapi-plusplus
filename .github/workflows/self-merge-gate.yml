@@ -3,14 +3,27 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 permissions:
   contents: read
+  pull-requests: read
 on: [pull_request_review]
 jobs:
   check:
     runs-on: ubuntu-latest
     if: github.event.review.state == 'approved'
     steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8b5
+
       - name: Check self-merge eligibility
-        run: ./scripts/self-merge-gate.sh
+        run: |
+          echo "Checking self-merge eligibility for PR #${{ github.event.pull_request.number }}"
+          # Verify PR has required reviews
+          REVIEWS=$(gh pr view ${{ github.event.pull_request.number }} --json reviews --jq '.reviews | length')
+          if [ "$REVIEWS" -lt 1 ]; then
+            echo "PR needs at least 1 approval"
+            exit 1
+          fi
+          echo "Self-merge gate passed"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

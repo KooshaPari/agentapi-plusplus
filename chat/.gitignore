@@ -43,3 +43,11 @@ next-env.d.ts
 
 *storybook.log
 storybook-static
+
+# Unwanted lockfiles (Bun is the package manager)
+package-lock.json
+pnpm-lock.yaml
+
+# Unwanted lockfiles (Bun is the package manager)
+package-lock.json
+pnpm-lock.yaml

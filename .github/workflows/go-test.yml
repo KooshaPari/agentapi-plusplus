@@ -3,7 +3,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 permissions:
   contents: read
 
@@ -36,16 +35,19 @@ jobs:
               with:
                   go-version: "stable"
 
+            - name: Set up Task
+              run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -d -b /usr/local/bin
+
             - name: Set up Bun
-              uses: oven-sh/setup-bun@v2
+              uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
 
             - name: Install Chat Dependencies
               run: cd chat && bun install
 
-            - name: run linters
-              run: make lint
+            - name: Run linters
+              run: task lint
 
-            - name: Check for unstaged changes
+            - name: Generate and check for unstaged changes
               run: |
-                  make gen
+                  task gen
                   ./check_unstaged.sh

@@ -76,6 +76,7 @@ pnpm-debug.log*
 *.lcov
 test-results/
 playwright-report/
+coverage.out
 
 # Worktrees (Phenotype convention)
 .worktrees/

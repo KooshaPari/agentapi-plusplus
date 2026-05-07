@@ -10,20 +10,20 @@ permissions:
 on:
   push:
     paths:
-      - '**.rs'
       - '**.go'
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
-  cargo-fuzz:
+  fuzzing:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-fuzz
-        run: cargo install cargo-fuzz || true
-      - name: Run fuzzing
-        run: cargo fuzz run all || true
+      - name: Set up Go
+        uses: actions/setup-go@0a12ed9e1a4ce4b1a02a5f2dd1e3a9c9e6c7f8b1
+        with:
+          go-version: 'stable'
+      - name: Run Go fuzzing
+        run: go test -fuzz=Fuzz -fuzztime=30s ./...
         continue-on-error: true

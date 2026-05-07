@@ -3,10 +3,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   schedule:
     - cron: '*/20 * * * *'
   workflow_dispatch:
@@ -224,10 +221,6 @@ jobs:
             core.info(`Open PR count: ${openPRs.length}`);
             await ensureBypassLabelExists();
 
-            const targetPRs = context.eventName === "pull_request_target"
-              ? openPRs.filter((p) => p.number === context.payload.pull_request.number)
-              : openPRs;
-
-            for (const pr of targetPRs) {
+            for (const pr of openPRs) {
               await processPR(pr);
             }

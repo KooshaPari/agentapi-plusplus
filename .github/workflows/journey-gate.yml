@@ -9,9 +9,20 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   journey-validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo "Journey gate: stub"
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Validate journey artifacts
+        run: |
+          echo "Journey gate: validating traceability artifacts"
+          # Check that journey docs exist
+          if [ -f "docs/operations/journey-traceability.md" ]; then
+            echo "Journey traceability doc found"
+          else
+            echo "No journey traceability doc (optional)"
+          fi

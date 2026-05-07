@@ -2,8 +2,6 @@ version: "2"
 linters:
   disable:
     - exhaustive
-    - errcheck
-    - unused
   settings:
     staticcheck:
       checks:

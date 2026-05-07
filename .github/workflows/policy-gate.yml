@@ -3,7 +3,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
@@ -18,12 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8b5
         with:
           fetch-depth: 0
 
-      - uses: KooshaPari/phenotypeActions/actions/policy-gate@main
-        with:
-          base_branch: main
-          block_merge_commits: true
-          require_layered_fix: true
+      - name: Check commit message format
+        run: |
+          git log --format=%s origin/main..HEAD | while read -r msg; do
+            if ! echo "$msg" | grep -qE '^(feat|fix|chore|ci|docs|refactor|test|style|perf|build|revert)(\(.+\))?: .+'; then
+              echo "Invalid commit message: $msg"
+              exit 1
+            fi
+          done

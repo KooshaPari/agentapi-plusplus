@@ -71,5 +71,5 @@ jobs:
                         issue_number: prNumber,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        body: `✅ Preview binaries are ready!\n\nTo test with modules: \`\`\`agentapi_version = "agentapi_${prNumber}"\`\`\` or download from: ${repoUrl}/releases/tag/${releaseTag}`
+                        body: `Preview binaries are ready!\n\nTo test with modules: \`\`\`agentapi_version = "agentapi_${prNumber}"\`\`\` or download from: ${repoUrl}/releases/tag/${releaseTag}`
                       });

@@ -3,7 +3,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 permissions:
   contents: read
 
@@ -11,7 +10,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'api/openapi.yaml'
+      - 'openapi.json'
       - 'internal/**/*.go'
   workflow_dispatch:
 
@@ -19,47 +18,40 @@ jobs:
   generate-sdks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8b5
+
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
-      
+
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '20'
-      
+
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
-          go-version: '1.23'
-      
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      
+          go-version: 'stable'
+
       - name: Install generators
         run: |
           npm install @openapitools/openapi-generator-cli -g
           pip install openapi-python-client
-      
+
       - name: Generate Python SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g python -o sdk/python --package-name agentapi
-      
+          openapi-generator generate -i openapi.json -g python -o sdk/python --package-name agentapi
+
       - name: Generate TypeScript SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g typescript-fetch -o sdk/typescript
-      
+          openapi-generator generate -i openapi.json -g typescript-fetch -o sdk/typescript
+
       - name: Generate Go SDK
         run: |
-          openapi-generator generate -i api/openapi.yaml -g go -o sdk/go
-      
-      - name: Generate Rust SDK
-        run: |
-          openapi-generator generate -i api/openapi.yaml -g rust -o sdk/rust
-      
+          openapi-generator generate -i openapi.json -g go -o sdk/go
+
       - name: Commit and push
         run: |
           git add sdk/

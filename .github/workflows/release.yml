@@ -6,8 +6,6 @@ permissions:
 on:
   release:
     types: [published]
-  push:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       create-artifact:
@@ -19,8 +17,7 @@ on:
 jobs:
   build:
     name: Build Release Binaries
-    runs-on: ubuntu-latest-8-cores
-    if: ${{ github.repository_owner == 'coder' }}
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -31,14 +28,17 @@ jobs:
         go-version: 'stable'
 
     - name: Set up Bun
-      uses: oven-sh/setup-bun@v2
+      uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+
+    - name: Install Task
+      run: sh -c "$(curl --location https://taskfile.dev/install.sh)" -d -b /usr/local/bin
 
     - name: Install Chat Dependencies
       run: cd chat && bun install
 
-    - name: Run make gen and check for unstaged changes
+    - name: Run task gen and check for unstaged changes
       run: |
-        make gen
+        task gen
         ./check_unstaged.sh
 
     - name: Build and Upload
@@ -58,20 +58,20 @@ jobs:
           read -r goos goarch artifact_name <<< "$variant"
 
           echo "Building for GOOS=$goos GOARCH=$goarch..."
-          CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch BINPATH="out/$artifact_name" make build
+          CGO_ENABLED=0 GOOS=$goos GOARCH=$goarch BINPATH="out/$artifact_name" task build:go
         done
 
     - name: Upload Build Artifact
       if: ${{ inputs.create-artifact }}
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: agentapi-build
         path: ${{ github.workspace }}/out
         retention-days: 7
 
     - name: Upload Release Assets
-      if: ${{ github.event_name == 'release' || github.ref == 'refs/heads/main' }}
+      if: ${{ github.event_name == 'release' }}
       run: gh release upload "$RELEASE_TAG" "$GITHUB_WORKSPACE"/out/* --clobber
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || 'preview' }}
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
