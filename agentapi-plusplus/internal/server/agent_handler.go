@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/coder/agentapi/internal/routing"
+	"github.com/go-chi/chi/v5"
 )
 
 // AgentHandler handles agent lifecycle endpoints
@@ -36,8 +36,8 @@ type AgentSessionInfo struct {
 
 // StartAgentRequest is the request body for starting an agent
 type StartAgentRequest struct {
-	Agent   string `json:"agent"`             // claude, codex, gemini
-	Model   string `json:"model"`             // model to use
+	Agent   string `json:"agent"`            // claude, codex, gemini
+	Model   string `json:"model"`            // model to use
 	Prompt  string `json:"prompt,omitempty"` // initial prompt
 	WorkDir string `json:"cwd,omitempty"`    // working directory
 }

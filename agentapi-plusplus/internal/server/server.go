@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coder/agentapi/internal/routing"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/coder/agentapi/internal/routing"
 )
 
 // Server represents the agentapi HTTP server

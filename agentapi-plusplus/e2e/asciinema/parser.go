@@ -19,15 +19,15 @@ type ScriptEntry struct {
 type Recording struct {
 	Version float64 `json:"version"`
 	Width   int     `json:"width"`
-	Height int     `json:"height"`
-	Lines  []Event  `json:"lines"`
+	Height  int     `json:"height"`
+	Lines   []Event `json:"lines"`
 }
 
 // Event represents a single asciinema event
 type Event struct {
-	Time float64       `json:"time"`
-	Type string        `json:"type"`
-	Data interface{}  `json:"data"`
+	Time float64     `json:"time"`
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }
 
 // ParseRecording parses an asciinema recording file
