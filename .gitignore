@@ -87,3 +87,12 @@ coverage.out
 
 # Docs node_modules explicit (Scorecard BinaryArtifacts FP cleanup)
 docs/node_modules/
+
+# ===== Standard auto-generated hygiene ignores (do not edit manually) =====
+.env.*
+!.env.example
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+# ===== End standard hygiene ignores =====
