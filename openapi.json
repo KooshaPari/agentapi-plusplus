@@ -198,6 +198,7 @@
       },
       "MessageType": {
         "enum": [
+          "command",
           "raw",
           "user"
         ],

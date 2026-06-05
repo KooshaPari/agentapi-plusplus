@@ -14,11 +14,13 @@ type MessageType string
 const (
 	MessageTypeUser MessageType = "user"
 	MessageTypeRaw  MessageType = "raw"
+	MessageTypeCommand MessageType = "command"
 )
 
 var MessageTypeValues = []MessageType{
 	MessageTypeUser,
 	MessageTypeRaw,
+	MessageTypeCommand,
 }
 
 func (m MessageType) Schema(r huma.Registry) *huma.Schema {
@@ -91,4 +93,63 @@ type UploadResponse struct {
 
 type UploadRequest struct {
 	File huma.FormFile `form:"file" required:"true" doc:"file that needs to be uploaded"`
+}
+
+type LogsResponse struct {
+	Body struct {
+		Logs []string `json:"logs" doc:"Server logs"`
+	}
+}
+
+type RateLimitResponse struct {
+	Body struct {
+		Enabled  bool `json:"enabled" doc:"Whether rate limiting is enabled"`
+		Requests int  `json:"requests" doc:"Max requests per minute"`
+	}
+}
+
+type ConfigResponse struct {
+	Body struct {
+		AgentType string `json:"agent_type" doc:"Agent type"`
+		Port      int    `json:"port" doc:"Server port"`
+	}
+}
+
+type HealthResponse struct {
+	Body struct {
+		Status string `json:"status" doc:"Health status"`
+	}
+}
+
+type VersionResponse struct {
+	Body struct {
+		Version string `json:"version" doc:"AgentAPI version"`
+	}
+}
+
+type ReadyResponse struct {
+	Body struct {
+		Ready bool `json:"ready" doc:"Whether the server is ready"`
+	}
+}
+
+type InfoResponse struct {
+	Body struct {
+		Version   string          `json:"version" doc:"AgentAPI version"`
+		AgentType mf.AgentType    `json:"agent_type" doc:"Agent type"`
+		Features  map[string]bool `json:"features" doc:"Supported features"`
+	}
+}
+
+type MessagesClearResponse struct {
+	Body struct {
+		Count int  `json:"count" doc:"Number of messages cleared"`
+		Ok    bool `json:"ok" doc:"Whether messages were cleared"`
+	}
+}
+
+type MessagesCountResponse struct {
+	Body struct {
+		Count int `json:"count" doc:"Number of messages"`
+	}
 }
