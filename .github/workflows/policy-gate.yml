@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: KooshaPari/phenotypeActions/actions/policy-gate@main
+      - uses: KooshaPari/phenotypeActions/actions/policy-gate@0000000000000000000000000000000000000000 # placeholder SHA; source 404s; replace when reachable
         with:
           base_branch: main
           block_merge_commits: true
