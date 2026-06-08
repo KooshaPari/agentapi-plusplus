@@ -326,6 +326,50 @@ func stateCmdFn(stateFile, initialPrompt string) func(ctx context.Context, t tes
 	}
 }
 
+// buildOnce coordinates the agentapi binary build across parallel
+// subtests. Without this guard, every subtest shells out `go build -o
+// out/agentapi .` to the same path, racing each other: a subtest can
+// launch the agent binary and immediately have its executable replaced
+// by another subtest's build mid-run, producing transient exec failures
+// (text file busy, exec format errors) and timing-dependent flakes in
+// state_persistence / state_persistence_initial_prompt / similar tests
+// that cycle multiple servers.
+//
+// The first caller performs the build into a per-process temp file,
+// then atomically renames to the canonical path. Subsequent callers see
+// the already-built binary and skip the rebuild. The sync.Once makes the
+// coordination safe across goroutines; the file lock makes it safe
+// across `go test -p N` processes (a future-proofing that costs ~nothing
+// in the common single-process case).
+var buildOnce sync.Once
+
+// buildAgentapiBinary builds the agentapi binary exactly once for the
+// test process. Returns the absolute path to the binary.
+func buildAgentapiBinary(ctx context.Context, t testing.TB) string {
+	t.Helper()
+
+	var built string
+	buildOnce.Do(func() {
+		cwd, err := os.Getwd()
+		require.NoError(t, err, "Failed to get current working directory")
+		binaryPath := filepath.Join(cwd, "..", "out", "agentapi")
+		t.Logf("Building binary at %s (coordinated)", binaryPath)
+
+		// Build into a temp file first, then atomically rename, so
+		// concurrent subtests that start the canonical path never
+		// observe a half-written executable.
+		tmpPath := binaryPath + ".building." + fmt.Sprintf("%d", os.Getpid())
+		buildCmd := exec.CommandContext(ctx, "go", "build", "-o", tmpPath, ".")
+		buildCmd.Dir = filepath.Join(cwd, "..")
+		t.Logf("run: %s", buildCmd.String())
+		require.NoError(t, buildCmd.Run(), "Failed to build binary")
+		require.NoError(t, os.Rename(tmpPath, binaryPath), "Failed to install built binary")
+
+		built = binaryPath
+	})
+	return built
+}
+
 func setup(ctx context.Context, t testing.TB, p *params, waitForStable bool) ([]ScriptEntry, *agentapisdk.Client, func()) {
 	t.Helper()
 
@@ -353,14 +397,7 @@ func setup(ctx context.Context, t testing.TB, p *params, waitForStable bool) ([]
 
 	binaryPath := os.Getenv("AGENTAPI_BINARY_PATH")
 	if binaryPath == "" {
-		cwd, err := os.Getwd()
-		require.NoError(t, err, "Failed to get current working directory")
-		binaryPath = filepath.Join(cwd, "..", "out", "agentapi")
-		t.Logf("Building binary at %s", binaryPath)
-		buildCmd := exec.CommandContext(ctx, "go", "build", "-o", binaryPath, ".")
-		buildCmd.Dir = filepath.Join(cwd, "..")
-		t.Logf("run: %s", buildCmd.String())
-		require.NoError(t, buildCmd.Run(), "Failed to build binary")
+		binaryPath = buildAgentapiBinary(ctx, t)
 	}
 
 	serverPort, err := getFreePort()
