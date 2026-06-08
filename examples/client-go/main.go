@@ -4,8 +4,10 @@
 //
 //	go run ./examples/client-go/ http://localhost:3284 "summarise this repo"
 //
-// It blocks until the agent's status flips back to "stable" after
-// processing the message, then prints the last assistant message.
+// It dials the server, prints the agent's status, sends the given
+// user message, then prints the most recent assistant message.
+// Uses the github.com/coder/agentapi-sdk-go module, which is the
+// official OpenAPI-generated client for the server in this repo.
 package main
 
 import (
@@ -35,15 +37,17 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	status, err := client.Status.Get(ctx)
+	status, err := client.GetStatus(ctx)
 	if err != nil {
 		log.Fatalf("status: %v", err)
 	}
-	fmt.Printf("agent=%s status=%s\n", status.AgentType, status.StatusName)
+	fmt.Printf("status=%s\n", status.Status)
 
-	if err := client.Message.Create(ctx, &agentapisdk.MessageRequest{
-		Content: prompt,
+	// PostMessage accepts a MessageRequestBody; the SDK exports the
+	// message-type constants MessageTypeUser / MessageTypeRaw.
+	if _, err := client.PostMessage(ctx, agentapisdk.PostMessageParams{
 		Type:    agentapisdk.MessageTypeUser,
+		Content: prompt,
 	}); err != nil {
 		log.Fatalf("send: %v", err)
 	}
@@ -53,17 +57,17 @@ func main() {
 	// loop and is fine for short prompts.
 	deadline := time.Now().Add(2 * time.Minute)
 	for time.Now().Before(deadline) {
-		st, err := client.Status.Get(ctx)
+		st, err := client.GetStatus(ctx)
 		if err != nil {
 			log.Fatalf("status poll: %v", err)
 		}
-		if st.StatusName == agentapisdk.StatusStable {
+		if st.Status == agentapisdk.StatusStable {
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	msgs, err := client.Messages.Get(ctx, nil)
+	msgs, err := client.GetMessages(ctx)
 	if err != nil {
 		log.Fatalf("messages: %v", err)
 	}
