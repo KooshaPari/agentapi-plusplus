@@ -385,29 +385,6 @@ func hostAuthorizationMiddleware(allowedHosts []string, badHostHandler http.Hand
 	}
 }
 
-// responseWriterRecorder wraps http.ResponseWriter to capture the
-// status code that was written, so requestLogger can include it in
-// its single log line per request.
-type responseWriterRecorder struct {
-	http.ResponseWriter
-	status int
-	bytes  int
-}
-
-func (r *responseWriterRecorder) WriteHeader(code int) {
-	r.status = code
-	r.ResponseWriter.WriteHeader(code)
-}
-
-func (r *responseWriterRecorder) Write(b []byte) (int, error) {
-	if r.status == 0 {
-		r.status = http.StatusOK
-	}
-	n, err := r.ResponseWriter.Write(b)
-	r.bytes += n
-	return n, err
-}
-
 // requestLogger returns a middleware that derives a per-request logger
 // from the server's base logger and the request ID stamped by
 // chimw.RequestID, then attaches that logger (and the id) to the
@@ -420,11 +397,19 @@ func (r *responseWriterRecorder) Write(b []byte) (int, error) {
 // ad-hoc fmt.Println-style logging that handlers used to do
 // individually and is the single best signal for "is the server
 // actually serving" under load.
+//
+// We use chi's canonical NewWrapResponseWriter instead of a hand-rolled
+// recorder. Hand-rolled wrappers that embed http.ResponseWriter and
+// override Write() reliably confuse the huma SSE library, which needs
+// to find an http.Flusher (and an http.Unwrap chain) on the writer so
+// that the SSE stream can be flushed after each event. chi's wrapper
+// implements the Unwrap() http.ResponseWriter method, so the lookup
+// walks the chain down to the real net/http response writer.
 func requestLogger(base *slog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			rec := &responseWriterRecorder{ResponseWriter: w}
+			ww := chimw.NewWrapResponseWriter(w, r.ProtoMajor)
 
 			reqID := chimw.GetReqID(r.Context())
 			reqLogger := base.With(slog.String("request_id", reqID))
@@ -434,20 +419,21 @@ func requestLogger(base *slog.Logger) func(next http.Handler) http.Handler {
 			// logger via logctx.From.
 			r = r.WithContext(logctx.WithLoggerAndRequestID(r.Context(), reqLogger, reqID))
 
-			next.ServeHTTP(rec, r)
+			next.ServeHTTP(ww, r)
 
 			dur := time.Since(start)
 			level := slog.LevelInfo
-			if rec.status >= 500 {
+			status := ww.Status()
+			if status >= 500 {
 				level = slog.LevelError
-			} else if rec.status >= 400 {
+			} else if status >= 400 {
 				level = slog.LevelWarn
 			}
 			reqLogger.LogAttrs(r.Context(), level, "http",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
-				slog.Int("status", rec.status),
-				slog.Int("bytes", rec.bytes),
+				slog.Int("status", status),
+				slog.Int("bytes", ww.BytesWritten()),
 				slog.Duration("duration", dur),
 				slog.String("remote", r.RemoteAddr),
 			)

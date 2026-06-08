@@ -348,11 +348,15 @@ var buildOnce sync.Once
 func buildAgentapiBinary(ctx context.Context, t testing.TB) string {
 	t.Helper()
 
-	var built string
+	// Resolve the canonical path eagerly so we always return the same
+	// absolute path regardless of when this function is called. The
+	// build itself is wrapped in sync.Once — the first caller performs
+	// it; later callers see the existing file.
+	cwd, err := os.Getwd()
+	require.NoError(t, err, "Failed to get current working directory")
+	binaryPath := filepath.Join(cwd, "..", "out", "agentapi")
+
 	buildOnce.Do(func() {
-		cwd, err := os.Getwd()
-		require.NoError(t, err, "Failed to get current working directory")
-		binaryPath := filepath.Join(cwd, "..", "out", "agentapi")
 		t.Logf("Building binary at %s (coordinated)", binaryPath)
 
 		// Build into a temp file first, then atomically rename, so
@@ -364,10 +368,8 @@ func buildAgentapiBinary(ctx context.Context, t testing.TB) string {
 		t.Logf("run: %s", buildCmd.String())
 		require.NoError(t, buildCmd.Run(), "Failed to build binary")
 		require.NoError(t, os.Rename(tmpPath, binaryPath), "Failed to install built binary")
-
-		built = binaryPath
 	})
-	return built
+	return binaryPath
 }
 
 func setup(ctx context.Context, t testing.TB, p *params, waitForStable bool) ([]ScriptEntry, *agentapisdk.Client, func()) {
@@ -532,7 +534,16 @@ func waitAgentAPIStable(ctx context.Context, t testing.TB, apiClient *agentapisd
 				}
 				t.Logf("Got event: %s", sb.String())
 			}
-		case err := <-errs:
+		case err, ok := <-errs:
+			if !ok {
+				// The errs channel was closed without a value
+				// — that is the SDK's normal shutdown path
+				// (its internal goroutine reaches EOF on the
+				// SSE body and returns without sending).
+				// Treat this like a context cancellation so
+				// the caller can decide whether to retry.
+				return waitCtx.Err()
+			}
 			return fmt.Errorf("read events: %w", err)
 		}
 	}
