@@ -286,9 +286,17 @@ func runServer(ctx context.Context, logger *slog.Logger, argsToPass []string) er
 			return xerrors.Errorf("agent exited with error: %w", err)
 		}
 	default:
-		// Close the process
-		if err := process.Close(logger, 5*time.Second); err != nil {
-			logger.Error("Failed to close process cleanly", "error", err)
+		// Close the process when running in PTY transport. In ACP
+		// transport, `process` is nil and cleanup is driven by the
+		// acpResult goroutine above (which calls srv.Stop and signals
+		// `acpResult.Done`); the goroutine is responsible for tearing
+		// down the ACP process, so we must not dereference `process`
+		// here. Without this guard, `experimental-acp` mode panics on
+		// SIGINT when the ACP process is still running.
+		if process != nil {
+			if err := process.Close(logger, 5*time.Second); err != nil {
+				logger.Error("Failed to close process cleanly", "error", err)
+			}
 		}
 	}
 	return nil
