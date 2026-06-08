@@ -31,6 +31,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/danielgtaylor/huma/v2/sse"
 	"github.com/go-chi/chi/v5"
+	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"golang.org/x/xerrors"
 )
@@ -221,6 +222,21 @@ func NewServer(ctx context.Context, config ServerConfig) (*Server, error) {
 	logger.Info(fmt.Sprintf("Allowed hosts: %s", strings.Join(allowedHosts, ", ")))
 	logger.Info(fmt.Sprintf("Allowed origins: %s", strings.Join(allowedOrigins, ", ")))
 
+	// Request ID: chi's RequestID middleware honours an inbound
+	// X-Request-ID header (useful for client-driven correlation) and
+	// otherwise generates a fresh UUID. The id is exposed both on the
+	// response header and under chimw.RequestIDKey in the request
+	// context. We register it before the host and CORS middleware so
+	// even a rejected request still gets a request ID stamped on it,
+	// making 4xx responses trivially correlatable to server logs.
+	router.Use(chimw.RequestID)
+
+	// requestLogger enriches the per-request context with a logger
+	// that already carries request_id, so handlers (and any deeper
+	// code that calls logctx.From) can simply use the context logger
+	// without re-deriving the attribute on every line.
+	router.Use(requestLogger(logger))
+
 	// Enforce allowed hosts in a custom middleware that ignores the port during matching.
 	badHostHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid host header. Allowed hosts: "+strings.Join(allowedHosts, ", "), http.StatusBadRequest)
@@ -365,6 +381,76 @@ func hostAuthorizationMiddleware(allowedHosts []string, badHostHandler http.Hand
 				}
 			}
 			badHostHandler.ServeHTTP(w, r)
+		})
+	}
+}
+
+// responseWriterRecorder wraps http.ResponseWriter to capture the
+// status code that was written, so requestLogger can include it in
+// its single log line per request.
+type responseWriterRecorder struct {
+	http.ResponseWriter
+	status int
+	bytes  int
+}
+
+func (r *responseWriterRecorder) WriteHeader(code int) {
+	r.status = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
+func (r *responseWriterRecorder) Write(b []byte) (int, error) {
+	if r.status == 0 {
+		r.status = http.StatusOK
+	}
+	n, err := r.ResponseWriter.Write(b)
+	r.bytes += n
+	return n, err
+}
+
+// requestLogger returns a middleware that derives a per-request logger
+// from the server's base logger and the request ID stamped by
+// chimw.RequestID, then attaches that logger (and the id) to the
+// request context. Handlers that call logctx.From(r.Context()) get
+// the enriched logger for free.
+//
+// The middleware emits one structured slog line per request with
+// method, path, status, bytes, duration, and request_id — the same
+// fields most production HTTP servers log. This replaces the
+// ad-hoc fmt.Println-style logging that handlers used to do
+// individually and is the single best signal for "is the server
+// actually serving" under load.
+func requestLogger(base *slog.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			rec := &responseWriterRecorder{ResponseWriter: w}
+
+			reqID := chimw.GetReqID(r.Context())
+			reqLogger := base.With(slog.String("request_id", reqID))
+
+			// Replace the request context so downstream handlers
+			// (humachi, file server, SSE handler) see the enriched
+			// logger via logctx.From.
+			r = r.WithContext(logctx.WithLoggerAndRequestID(r.Context(), reqLogger, reqID))
+
+			next.ServeHTTP(rec, r)
+
+			dur := time.Since(start)
+			level := slog.LevelInfo
+			if rec.status >= 500 {
+				level = slog.LevelError
+			} else if rec.status >= 400 {
+				level = slog.LevelWarn
+			}
+			reqLogger.LogAttrs(r.Context(), level, "http",
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				slog.Int("status", rec.status),
+				slog.Int("bytes", rec.bytes),
+				slog.Duration("duration", dur),
+				slog.String("remote", r.RemoteAddr),
+			)
 		})
 	}
 }

@@ -405,8 +405,11 @@ func CreateServerCmd() *cobra.Command {
 			}
 			logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 			if viper.GetBool(FlagPrintOpenAPI) {
-				// We don't want log output here.
-				logger = slog.New(logctx.DiscardHandler)
+				// We don't want log output here. Use the standard library's
+				// discard handler (Go 1.24+) instead of the local
+				// logctx.DiscardHandler placeholder, which the lib
+				// no longer needs to ship.
+				logger = slog.New(slog.DiscardHandler)
 			}
 			ctx := logctx.WithLogger(context.Background(), logger)
 			if err := runServer(ctx, logger, cmd.Flags().Args()); err != nil {
