@@ -9,6 +9,11 @@ on:
   pull_request:
     branches: [main]
 
+# DAG L2-33: cancel superseded PR runs; serialize same-ref runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
