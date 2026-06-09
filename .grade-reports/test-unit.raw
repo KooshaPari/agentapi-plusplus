@@ -1,0 +1,25 @@
+?   	github.com/coder/agentapi	[no test files]
+?   	github.com/coder/agentapi/cmd	[no test files]
+?   	github.com/coder/agentapi/cmd/attach	[no test files]
+?   	github.com/coder/agentapi/cmd/bifrost	[no test files]
+ok  	github.com/coder/agentapi/cmd/server	(cached)
+ok  	github.com/coder/agentapi/e2e	113.708s
+ok  	github.com/coder/agentapi/e2e/asciinema	(cached)
+?   	github.com/coder/agentapi/examples/client-go	[no test files]
+?   	github.com/coder/agentapi/internal/benchmarks	[no test files]
+?   	github.com/coder/agentapi/internal/cli	[no test files]
+?   	github.com/coder/agentapi/internal/config	[no test files]
+ok  	github.com/coder/agentapi/internal/harness	(cached)
+?   	github.com/coder/agentapi/internal/middleware	[no test files]
+?   	github.com/coder/agentapi/internal/phenotype	[no test files]
+ok  	github.com/coder/agentapi/internal/routing	(cached)
+ok  	github.com/coder/agentapi/internal/server	(cached)
+?   	github.com/coder/agentapi/internal/version	[no test files]
+ok  	github.com/coder/agentapi/lib/httpapi	(cached)
+?   	github.com/coder/agentapi/lib/logctx	[no test files]
+ok  	github.com/coder/agentapi/lib/msgfmt	(cached)
+ok  	github.com/coder/agentapi/lib/screentracker	(cached)
+?   	github.com/coder/agentapi/lib/termexec	[no test files]
+ok  	github.com/coder/agentapi/lib/util	(cached)
+ok  	github.com/coder/agentapi/test	(cached)
+ok  	github.com/coder/agentapi/x/acpio	(cached)
