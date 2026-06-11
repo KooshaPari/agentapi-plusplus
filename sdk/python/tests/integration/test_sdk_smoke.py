@@ -1,4 +1,5 @@
-"""Integration tests for the agentapi-plusplus Python SDK.
+"""
+Integration tests for the agentapi-plusplus Python SDK.
 
 These tests exercise the AgentAPI client against a real or stubbed server.
 They are marked as integration tests so they can be selected/deselected
@@ -8,9 +9,13 @@ via pytest's `-m integration` / `-m "not integration"` flags.
 
 from __future__ import annotations
 
-import pytest
-
-from agentapi import AgentAPI, AgentStatus, AgentType, MessageType
+from agentapi import (
+    AgentAPI,
+    AgentStatus,
+    AgentType,
+    MessageType,
+    Status,
+)
 
 
 def test_client_initializes_with_default_base_url() -> None:
@@ -37,8 +42,6 @@ def test_agent_type_enum_contains_supported_agents() -> None:
 
 def test_status_is_idle_property() -> None:
     """Status.is_idle should be true only when state is STABLE."""
-    from agentapi import Status
-
     stable = Status(status=AgentStatus.STABLE, agent_type=AgentType.CLAUDE)
     running = Status(status=AgentStatus.RUNNING, agent_type=AgentType.CLAUDE)
     assert stable.is_idle is True
