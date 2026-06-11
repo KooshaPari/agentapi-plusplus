@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/xerrors"
 
+	"github.com/coder/agentapi/internal/observability"
 	"github.com/coder/agentapi/lib/httpapi"
 	"github.com/coder/agentapi/lib/logctx"
 	"github.com/coder/agentapi/lib/msgfmt"
@@ -412,6 +413,16 @@ func CreateServerCmd() *cobra.Command {
 				logger = slog.New(slog.DiscardHandler)
 			}
 			ctx := logctx.WithLogger(context.Background(), logger)
+			shutdownObservability, err := observability.Init(ctx, logger)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%+v\n", err)
+				os.Exit(1)
+			}
+			defer func() {
+				if err := shutdownObservability(context.Background()); err != nil {
+					logger.Error("Failed to shutdown OpenTelemetry", "error", err)
+				}
+			}()
 			if err := runServer(ctx, logger, cmd.Flags().Args()); err != nil {
 				fmt.Fprintf(os.Stderr, "%+v\n", err)
 				os.Exit(1)
