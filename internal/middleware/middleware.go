@@ -20,8 +20,8 @@ import (
 func ApplyDefaultStack(router *chi.Mux) error {
 	router.Use(chimiddleware.RequestID)
 	router.Use(chimiddleware.RealIP)
-	router.Use(chimiddleware.Recoverer)
 	router.Use(chimiddleware.Logger)
+	router.Use(chimiddleware.Recoverer)
 	return nil
 }
 
