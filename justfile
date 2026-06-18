@@ -68,6 +68,18 @@ fmt:
 ci: install build test lint
 
 clean:
+<<<<<<< Updated upstream
     #!/usr/bin/env bash
     set -euo pipefail
     rm -rf node_modules dist target build .next coverage __pycache__ 2>/dev/null || true
+=======
+    @echo "Remove build artifacts"
+
+# Run the full local quality gate.
+quality: lint test
+    @echo "Quality gate passed"
+
+# Measure code coverage (SSOT: see grade.sh for the canonical command)
+coverage:
+    @echo "Run project coverage (see package.json / Cargo.toml / pyproject.toml)"
+>>>>>>> Stashed changes
