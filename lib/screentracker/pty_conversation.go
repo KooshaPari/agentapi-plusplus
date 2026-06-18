@@ -590,6 +590,12 @@ func (c *PTYConversation) statusLocked() ConversationStatus {
 	return ConversationStatusStable
 }
 
+func (c *PTYConversation) ClearMessages() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.messages = nil
+}
+
 func (c *PTYConversation) Messages() []ConversationMessage {
 	c.lock.Lock()
 	defer c.lock.Unlock()
