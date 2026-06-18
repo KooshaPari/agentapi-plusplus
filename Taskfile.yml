@@ -111,6 +111,24 @@ tasks:
       - task: lint:go
       - task: lint:chat
 
+  vet:
+    desc: Run go vet -all ./... across the Go module.
+    summary: |
+      Strict go vet pass that enables all default and non-default analyzers
+      (-vet=all equivalent: -all). Used as a CI gate to surface shadowed
+      variables, printf format mismatches, build-tag mistakes, etc. that the
+      default vet invocation misses.
+    status:
+      - test ! -f go.mod
+    cmds:
+      - |
+        bash -euo pipefail -c '
+          export GOCACHE="$PWD/{{.GO_CACHE_DIR}}"
+          export GOTMPDIR="$PWD/{{.GO_TMP_DIR}}"
+          mkdir -p "$GOCACHE" "$GOTMPDIR"
+          go vet -p {{.GO_PACKAGE_PARALLELISM}} -all {{.GO_PACKAGES}}
+        '
+
   lint:taskfile:
     internal: true
     cmds:
