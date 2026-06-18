@@ -14,6 +14,7 @@ type MessageType string
 const (
 	MessageTypeUser MessageType = "user"
 	MessageTypeRaw  MessageType = "raw"
+	MessageTypeCommand MessageType = "command"
 )
 
 var MessageTypeValues = []MessageType{
