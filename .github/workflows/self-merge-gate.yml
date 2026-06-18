@@ -8,5 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.review.state == 'approved'
     steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
       - name: Check self-merge eligibility
-        run: ./scripts/self-merge-gate.sh
+        run: bash ./scripts/self-merge-gate.sh
