@@ -401,7 +401,10 @@ func setup(ctx context.Context, t testing.TB, p *params, waitForStable bool) ([]
 	err = json.Unmarshal(data, &script)
 	require.NoError(t, err, "Failed to unmarshal script from %s", scriptFilePath)
 
-	binaryPath := ensureBinaryBuilt(t)
+	binaryPath := os.Getenv("AGENTAPI_BINARY_PATH")
+	if binaryPath == "" {
+		binaryPath = buildAgentapiBinary(ctx, t)
+	}
 
 	serverPort, err := getFreePort()
 	require.NoError(t, err, "Failed to get free port for server")
