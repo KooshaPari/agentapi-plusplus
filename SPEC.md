@@ -11,7 +11,7 @@
 
 AgentAPI++ is the Phenotype-org fork of [coder/agentapi](https://github.com/coder/agentapi). It exposes a stable HTTP + SSE interface so orchestrators, CI, MCP servers, and other automation can programmatically drive CLI-based AI coding agents (Claude Code, Cursor, Aider, Codex, Goose, Gemini CLI, GitHub Copilot, Sourcegraph Amp, Amazon Q, Auggie, Opencode, and others) without manual terminal interaction.
 
-```
+```txt
 HTTP client → AgentAPI++ (Go server, :3284) → PTY → agent CLI → structured messages/events
 ```
 
