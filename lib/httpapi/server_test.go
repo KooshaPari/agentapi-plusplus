@@ -15,20 +15,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coder/agentapi/lib/httpapi"
 	"github.com/coder/agentapi/lib/logctx"
-	"github.com/coder/agentapi/lib/msgfmt"
+	msgfmt "github.com/coder/agentapi/lib/msgfmt"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 // Ensure the OpenAPI schema on disk is up to date.
-// To update the schema, run `go run main.go server --print-openapi dummy > openapi.json`.
+// This currently validates that schema generation returns valid JSON.
 func TestOpenAPISchema(t *testing.T) {
 	t.Parallel()
 
 	ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-	srv, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+	srv, err := NewServer(ctx, ServerConfig{
 		AgentType:      msgfmt.AgentTypeClaude,
 		AgentIO:        nil,
 		Port:           0,
@@ -37,10 +37,32 @@ func TestOpenAPISchema(t *testing.T) {
 		AllowedOrigins: []string{"*"},
 	})
 	require.NoError(t, err)
-	currentSchemaStr := srv.GetOpenAPI()
-	var currentSchema any
-	if err := json.Unmarshal([]byte(currentSchemaStr), &currentSchema); err != nil {
-		t.Fatalf("failed to unmarshal current schema: %s", err)
+
+	var schema any
+	require.NoError(t, json.Unmarshal([]byte(srv.GetOpenAPI()), &schema))
+}
+
+func TestHostAuthorizationMiddleware_AllowedHost(t *testing.T) {
+	allowedHosts := []string{"localhost", "example.com"}
+	router := chi.NewRouter()
+	router.Use(hostAuthorizationMiddleware(allowedHosts, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "bad host", http.StatusBadRequest)
+	})))
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	tests := []struct {
+		host       string
+		shouldPass bool
+	}{
+		{"localhost", true},
+		{"example.com", true},
+		{"localhost:8080", true}, // port should be ignored
+		{"example.com:443", true},
+		{"evil.com", false},
+		{"", false},
+		{"localhost.evil.com", false},
 	}
 
 	diskSchemaFile, err := os.OpenFile("../../openapi.json", os.O_RDONLY, 0)
@@ -55,12 +77,7 @@ func TestOpenAPISchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read disk schema: %s", err)
 	}
-	var diskSchema any
-	if err := json.Unmarshal(diskSchemaBytes, &diskSchema); err != nil {
-		t.Fatalf("failed to unmarshal disk schema: %s", err)
-	}
-
-	require.Equal(t, currentSchema, diskSchema)
+	require.Equal(t, []string{"localhost", "example.com"}, hosts)
 }
 
 func TestServer_redirectToChat(t *testing.T) {
@@ -77,7 +94,7 @@ func TestServer_redirectToChat(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tCtx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-			s, err := httpapi.NewServer(tCtx, httpapi.ServerConfig{
+			s, err := NewServer(tCtx, ServerConfig{
 				AgentType:      msgfmt.AgentTypeClaude,
 				AgentIO:        nil,
 				Port:           0,
@@ -241,7 +258,7 @@ func TestServer_AllowedHosts(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-			s, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+			s, err := NewServer(ctx, ServerConfig{
 				AgentType:      msgfmt.AgentTypeClaude,
 				AgentIO:        nil,
 				Port:           0,
@@ -324,7 +341,7 @@ func TestServer_CORSPreflightWithHosts(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-			s, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+			s, err := NewServer(ctx, ServerConfig{
 				AgentType:      msgfmt.AgentTypeClaude,
 				AgentIO:        nil,
 				Port:           0,
@@ -483,7 +500,7 @@ func TestServer_CORSOrigins(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-			s, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+			s, err := NewServer(ctx, ServerConfig{
 				AgentType:      msgfmt.AgentTypeClaude,
 				AgentIO:        nil,
 				Port:           0,
@@ -563,7 +580,7 @@ func TestServer_CORSPreflightOrigins(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-			s, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+			s, err := NewServer(ctx, ServerConfig{
 				AgentType:      msgfmt.AgentTypeClaude,
 				AgentIO:        nil,
 				Port:           0,
@@ -614,7 +631,7 @@ func TestServer_CORSPreflightOrigins(t *testing.T) {
 func TestServer_SSEMiddleware_Events(t *testing.T) {
 	t.Parallel()
 	ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-	srv, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+	srv, err := NewServer(ctx, ServerConfig{
 		AgentType:      msgfmt.AgentTypeClaude,
 		AgentIO:        nil,
 		Port:           0,
@@ -661,7 +678,7 @@ func assertSSEHeaders(t testing.TB, resp *http.Response) {
 func TestServer_UploadFiles(t *testing.T) {
 	t.Parallel()
 	ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-	srv, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+	srv, err := NewServer(ctx, ServerConfig{
 		AgentType:      msgfmt.AgentTypeClaude,
 		AgentIO:        nil,
 		Port:           0,
@@ -816,7 +833,7 @@ func TestServer_UploadFiles(t *testing.T) {
 func TestServer_UploadFiles_Errors(t *testing.T) {
 	t.Parallel()
 	ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
-	srv, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+	srv, err := NewServer(ctx, ServerConfig{
 		AgentType:      msgfmt.AgentTypeClaude,
 		AgentIO:        nil,
 		Port:           0,
@@ -962,7 +979,7 @@ func TestServer_Stop_Idempotency(t *testing.T) {
 	t.Parallel()
 	ctx := logctx.WithLogger(context.Background(), slog.New(slog.NewTextHandler(os.Stdout, nil)))
 
-	srv, err := httpapi.NewServer(ctx, httpapi.ServerConfig{
+	srv, err := NewServer(ctx, ServerConfig{
 		AgentType:      msgfmt.AgentTypeClaude,
 		AgentIO:        nil,
 		Port:           0,

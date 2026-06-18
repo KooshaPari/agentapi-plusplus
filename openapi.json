@@ -258,6 +258,52 @@
         ],
         "type": "object"
       },
+      "RateLimitResponseBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "example": "https://example.com/schemas/RateLimitResponseBody.json",
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "enabled": {
+            "description": "Whether rate limiting is enabled",
+            "type": "boolean"
+          },
+          "requests": {
+            "description": "Requests per minute limit",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "enabled",
+          "requests"
+        ],
+        "type": "object"
+      },
+      "ReadyResponseBody": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "example": "https://example.com/schemas/ReadyResponseBody.json",
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "ready": {
+            "description": "Whether the server is ready",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ready"
+        ],
+        "type": "object"
+      },
       "ScreenUpdateBody": {
         "additionalProperties": false,
         "properties": {
@@ -541,6 +587,93 @@
           }
         },
         "summary": "Get messages"
+      }
+    },
+    "/messages/count": {
+      "get": {
+        "description": "Returns the count of messages in the conversation.",
+        "operationId": "get-messages-count",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagesCountResponseBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Get messages count"
+      }
+    },
+    "/rate-limit": {
+      "get": {
+        "description": "Returns rate limit status.",
+        "operationId": "get-rate-limit",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponseBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Get rate limit"
+      }
+    },
+    "/ready": {
+      "get": {
+        "description": "Readiness probe for Kubernetes.",
+        "operationId": "get-ready",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyResponseBody"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorModel"
+                }
+              }
+            },
+            "description": "Error"
+          }
+        },
+        "summary": "Get ready"
       }
     },
     "/status": {

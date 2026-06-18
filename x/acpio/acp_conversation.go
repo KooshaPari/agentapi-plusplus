@@ -84,6 +84,23 @@ func (c *ACPConversation) Messages() []st.ConversationMessage {
 	return slices.Clone(c.messages)
 }
 
+// ClearMessages resets conversation history to a blank agent message, matching PTY behavior.
+func (c *ACPConversation) ClearMessages() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.messages = []st.ConversationMessage{
+		{
+			Id:      0,
+			Message: "",
+			Role:    st.ConversationRoleAgent,
+			Time:    c.clock.Now(),
+		},
+	}
+	c.nextID = 1
+	c.streamingResponse.Reset()
+}
+
 // Send sends a message to the agent synchronously.
 // It blocks until the agent has finished processing and returns any error
 // from the underlying write. Returns a validation error immediately if

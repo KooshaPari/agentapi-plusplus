@@ -1,0 +1,28 @@
+"timestamp","branch","status","before","after","exit","log"
+"2026-06-18 00:40:15","agentapi-plusplus/chore/sast-pin-governance-clean","failed","aa0629e","aa0629e","1","00:40:16.394684 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:40:16.411267 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/agentapi-plusplus/chore/sast-pin-governance-clean
+00:40:16.609790 run-command.c:668       trace: run_command: git stash create
+00:40:16.609790 run-command.c:929       trace: start_command: git stash create
+00:40:16.660794 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:40:16.693488 git.c:476               trace: built-in: git stash create
+Auto-merging .github/workflows/docs-site.yml
+Auto-merging .github/workflows/go-test.yml
+Auto-merging .github/workflows/pr-preview-build.yml
+Auto-merging .github/workflows/release.yml
+Auto-merging .github/workflows/self-merge-gate.yml
+Auto-merging README.md
+Auto-merging chat/bun.lock
+Auto-merging chat/package.json
+Auto-merging docs/package-lock.json
+Auto-merging docs/package.json
+Auto-merging e2e/echo_test.go
+Auto-merging lib/httpapi/claude.go
+Auto-merging lib/httpapi/events_test.go
+Auto-merging lib/httpapi/models.go
+Auto-merging lib/httpapi/server.go
+Auto-merging lib/httpapi/server_test.go
+Auto-merging lib/screentracker/pty_conversation.go
+Auto-merging openapi.json
+Auto-merging scripts/quality-gate.sh
+CONFLICT (modify/delete): vendor/modules.txt deleted in HEAD and modified in origin/agentapi-plusplus/chore/sast-pin-governance-clean.  Version origin/agentapi-plusplus/chore/sast-pin-governance-clean of vendor/modules.txt left in tree.
+Automatic merge failed; fix conflicts and then commit the result."

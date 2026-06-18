@@ -12,8 +12,8 @@ import (
 type MessageType string
 
 const (
-	MessageTypeUser MessageType = "user"
-	MessageTypeRaw  MessageType = "raw"
+	MessageTypeUser    MessageType = "user"
+	MessageTypeRaw     MessageType = "raw"
 	MessageTypeCommand MessageType = "command"
 )
 
@@ -50,12 +50,65 @@ type Message struct {
 	Time    time.Time           `json:"time" doc:"Timestamp of the message"`
 }
 
+// LogsResponse represents server logs
+type LogsResponse struct {
+	Body struct {
+		Logs []string `json:"logs" doc:"Server logs"`
+	}
+}
+
+// RateLimitResponse represents rate limit status
+type RateLimitResponse struct {
+	Body struct {
+		Enabled  bool `json:"enabled" doc:"Whether rate limiting is enabled"`
+		Requests int  `json:"requests" doc:"Requests per minute limit"`
+	}
+}
+
+// ConfigResponse represents the server configuration
+type ConfigResponse struct {
+	Body struct {
+		AgentType string `json:"agent_type" doc:"Type of the agent"`
+		Port      int    `json:"port" doc:"Server port"`
+	}
+}
+
+// HealthResponse represents the health check response
+type HealthResponse struct {
+	Body struct {
+		Status string `json:"status" doc:"Health status"`
+	}
+}
+
+// VersionResponse represents the version endpoint response.
+type VersionResponse struct {
+	Body struct {
+		Version string `json:"version" doc:"AgentAPI version"`
+	}
+}
+
+// ReadyResponse represents the readiness check response
+type ReadyResponse struct {
+	Body struct {
+		Ready bool `json:"ready" doc:"Whether the server is ready"`
+	}
+}
+
 // StatusResponse represents the server status
 type StatusResponse struct {
 	Body struct {
 		Status    AgentStatus  `json:"status" doc:"Current agent status. 'running' means that the agent is processing a message, 'stable' means that the agent is idle and waiting for input."`
 		AgentType mf.AgentType `json:"agent_type" doc:"Type of the agent being used by the server."`
 		Transport Transport    `json:"transport" doc:"Backend transport being used ('acp' or 'pty')."`
+	}
+}
+
+// InfoResponse represents the server and agent info
+type InfoResponse struct {
+	Body struct {
+		Version   string          `json:"version" doc:"AgentAPI version"`
+		AgentType mf.AgentType    `json:"agent_type" doc:"Type of the agent being used by the server."`
+		Features  map[string]bool `json:"features" doc:"Supported features"`
 	}
 }
 
