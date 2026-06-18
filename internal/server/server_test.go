@@ -9,6 +9,7 @@ import (
 
 	"github.com/coder/agentapi/internal/routing"
 	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
 // Traces to: FR-HTTP-001
@@ -68,6 +69,28 @@ func TestHealthHandler(t *testing.T) {
 
 	if status, ok := response["status"]; !ok || status != "ok" {
 		t.Errorf("Expected status field to be 'ok', got %v", status)
+	}
+}
+
+func TestBuildRouter_AppliesDefaultChiV5Middleware(t *testing.T) {
+	bifrost, _ := routing.NewAgentBifrost("http://localhost:8080")
+	server := New(8080, bifrost)
+	r := server.buildRouter()
+	r.Get("/middleware-audit/request-id", func(w http.ResponseWriter, req *http.Request) {
+		_, _ = w.Write([]byte(chimiddleware.GetReqID(req.Context())))
+	})
+
+	req := httptest.NewRequest("GET", "/middleware-audit/request-id", nil)
+	req.Header.Set("X-Request-Id", "audit-request-id")
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status 200, got %d", w.Code)
+	}
+	if got := w.Body.String(); got != "audit-request-id" {
+		t.Fatalf("Expected request ID middleware to preserve inbound ID in context, got %q", got)
 	}
 }
 

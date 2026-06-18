@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	agentmiddleware "github.com/coder/agentapi/internal/middleware"
 	"github.com/coder/agentapi/internal/routing"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
 // Server represents the agentapi HTTP server
@@ -33,9 +33,23 @@ func New(port int, router *routing.AgentBifrost) *Server {
 
 // Start starts the HTTP server
 func (s *Server) Start() error {
+	r := s.buildRouter()
+
+	s.server = &http.Server{
+		Addr:    fmt.Sprintf(":%d", s.port),
+		Handler: r,
+	}
+
+	return s.server.ListenAndServe()
+}
+
+func (s *Server) buildRouter() *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
+	if err := agentmiddleware.ApplyDefaultStack(r); err != nil {
+		// ApplyDefaultStack is currently deterministic and non-failing, but keep
+		// startup behavior explicit if that contract changes.
+		panic(fmt.Sprintf("failed to apply middleware stack: %v", err))
+	}
 
 	// Health check
 	r.Get("/health", s.health)
@@ -56,12 +70,7 @@ func (s *Server) Start() error {
 	// Connect to cliproxy+bifrost
 	r.HandleFunc("/proxy/*", s.proxy)
 
-	s.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.port),
-		Handler: r,
-	}
-
-	return s.server.ListenAndServe()
+	return r
 }
 
 // Shutdown gracefully shuts down the server
