@@ -1,28 +1,327 @@
-"timestamp","branch","status","before","after","exit","log"
-"2026-06-18 00:40:15","agentapi-plusplus/chore/sast-pin-governance-clean","failed","aa0629e","aa0629e","1","00:40:16.394684 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
-00:40:16.411267 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/agentapi-plusplus/chore/sast-pin-governance-clean
-00:40:16.609790 run-command.c:668       trace: run_command: git stash create
-00:40:16.609790 run-command.c:929       trace: start_command: git stash create
-00:40:16.660794 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
-00:40:16.693488 git.c:476               trace: built-in: git stash create
-Auto-merging .github/workflows/docs-site.yml
-Auto-merging .github/workflows/go-test.yml
-Auto-merging .github/workflows/pr-preview-build.yml
-Auto-merging .github/workflows/release.yml
-Auto-merging .github/workflows/self-merge-gate.yml
+branch,status,before,after,log
+"chore/SD1-004-sota-2026-06-11",ok,5cc3838,f683890,"00:41:40.277975 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:41:40.405011 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/SD1-004-sota-2026-06-11
+00:41:41.257859 run-command.c:668       trace: run_command: git stash create
+00:41:41.257859 run-command.c:929       trace: start_command: git stash create
+00:41:41.531817 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:41:41.616654 git.c:476               trace: built-in: git stash create
+Auto-merging e2e/echo_test.go
+Auto-merging lib/httpapi/server.go
+00:41:45.133363 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:41:45.133363 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:41:45.291466 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:41:45.304476 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ CHANGELOG.md          | 32 ++++++++++++++++++++
+ e2e/echo_test.go      |  5 ++-
+ lib/httpapi/server.go | 84 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 120 insertions(+), 1 deletion(-)
+"
+"chore/audit-agentapi-plusplus-2026-06-08",ok,f683890,443833a,"00:41:47.466440 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:41:47.480133 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/audit-agentapi-plusplus-2026-06-08
+00:41:47.852085 run-command.c:668       trace: run_command: git stash create
+00:41:47.852085 run-command.c:929       trace: start_command: git stash create
+00:41:48.376990 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:41:48.389566 git.c:476               trace: built-in: git stash create
+Merge made by the 'ort' strategy.
+00:41:51.642059 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+00:41:51.642059 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:41:51.963419 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:41:52.036164 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ .claude/dag-v2-audit-agentapi-plusplus.json | 140 ++++++++++++++++++++++++++++
+ 1 file changed, 140 insertions(+)
+ create mode 100644 .claude/dag-v2-audit-agentapi-plusplus.json
+"
+"chore/changelog-2026-06-08",ok,443833a,7241354,"00:41:54.692134 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:41:54.736672 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/changelog-2026-06-08
+00:41:55.453012 run-command.c:668       trace: run_command: git stash create
+00:41:55.453012 run-command.c:929       trace: start_command: git stash create
+00:41:55.711400 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:41:55.723466 git.c:476               trace: built-in: git stash create
+00:41:59.416291 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+00:41:59.417302 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:42:00.021418 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:00.136898 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ CHANGELOG.md | 35 ++++++++++++++++++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
+"
+"chore/ci-cargo-cache-2026-06-08",ok,7241354,1683591,"00:42:03.188664 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:42:03.291340 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/ci-cargo-cache-2026-06-08
+00:42:03.930590 run-command.c:668       trace: run_command: git stash create
+00:42:03.930590 run-command.c:929       trace: start_command: git stash create
+00:42:04.470592 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:04.502162 git.c:476               trace: built-in: git stash create
+00:42:07.679590 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:42:07.679590 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:42:07.818535 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:07.833616 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ .github/workflows/ci.yml           |   5 +
+ .github/workflows/fuzzing.yml      |   6 ++
+ .grade-reports/audit.raw           |  12 +++
+ .grade-reports/build.raw           |   0
+ .grade-reports/fmt.raw             |   0
+ .grade-reports/lint.raw            |   1 +
+ .grade-reports/test-unit.raw       |  25 +++++
+ .grade-reports/vet.raw             |   0
+ Taskfile.yml                       |  27 +++++
+ docs/acceptance-contracts/.gitkeep |   0
+ grade.sh                           | 198 +++++++++++++++++++++++++++++++++++++
+ lefthook.yml                       |  74 ++++++++++++++
+ 12 files changed, 348 insertions(+)
+ create mode 100644 .grade-reports/audit.raw
+ create mode 100644 .grade-reports/build.raw
+ create mode 100644 .grade-reports/fmt.raw
+ create mode 100644 .grade-reports/lint.raw
+ create mode 100644 .grade-reports/test-unit.raw
+ create mode 100644 .grade-reports/vet.raw
+ create mode 100644 docs/acceptance-contracts/.gitkeep
+ create mode 100755 grade.sh
+ create mode 100644 lefthook.yml
+"
+"chore/ci-concurrency-2026-06-08",ok,1683591,1683591,"00:42:10.232299 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:42:10.325311 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/ci-concurrency-2026-06-08
+Already up to date.
+"
+"chore/contributing-2026-06-08",ok,1683591,260935d,"00:42:12.552712 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:42:12.581683 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/contributing-2026-06-08
+00:42:13.218797 run-command.c:668       trace: run_command: git stash create
+00:42:13.219981 run-command.c:929       trace: start_command: git stash create
+00:42:13.489026 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:13.515649 git.c:476               trace: built-in: git stash create
+00:42:16.037685 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:42:16.037685 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:42:16.361721 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:16.461696 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ CONTRIBUTING.md | 221 ++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 215 insertions(+), 6 deletions(-)
+"
+"chore/eslint-strict-2026-06-08",ok,260935d,260935d,"00:42:18.674605 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:42:18.863274 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/eslint-strict-2026-06-08
+Already up to date.
+"
+"chore/gitleaks-2026-06-08",ok,260935d,1bc8690,"00:42:24.284982 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:42:24.429304 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/gitleaks-2026-06-08
+00:42:25.371742 run-command.c:668       trace: run_command: git stash create
+00:42:25.371742 run-command.c:929       trace: start_command: git stash create
+00:42:26.237224 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:26.254009 git.c:476               trace: built-in: git stash create
+00:42:33.772815 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:42:33.772815 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:42:34.496521 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:34.555540 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ .github/workflows/gitleaks.yml | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 .github/workflows/gitleaks.yml
+"
+"chore/go-vet-strict-2026-06-08",ok,1bc8690,9cddada,"00:42:48.113411 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:42:48.488422 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/go-vet-strict-2026-06-08
+00:42:50.053313 run-command.c:668       trace: run_command: git stash create
+00:42:50.053313 run-command.c:929       trace: start_command: git stash create
+00:42:50.825425 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:42:50.839423 git.c:476               trace: built-in: git stash create
+Merge made by the 'ort' strategy.
+00:42:59.448369 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+00:42:59.448369 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:43:00.185946 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:00.591845 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ Taskfile.yml       | 18 ++++++++++++++++++
+ pyrightconfig.json |  7 +++++++
+ 2 files changed, 25 insertions(+)
+ create mode 100644 pyrightconfig.json
+"
+"chore/hygiene-w84-fixed",ok,9cddada,325e0bf,"00:43:05.596112 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:05.608491 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/hygiene-w84-fixed
+00:43:06.019896 run-command.c:668       trace: run_command: git stash create
+00:43:06.019896 run-command.c:929       trace: start_command: git stash create
+00:43:06.109614 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:06.124671 git.c:476               trace: built-in: git stash create
 Auto-merging README.md
-Auto-merging chat/bun.lock
-Auto-merging chat/package.json
+Merge made by the 'ort' strategy.
+00:43:08.126673 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+00:43:08.127686 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:43:08.854395 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:08.898260 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ README.md | 9 ---------
+ 1 file changed, 9 deletions(-)
+"
+"chore/mypy-strict-2026-06-08",ok,325e0bf,325e0bf,"00:43:10.781031 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:10.835606 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/mypy-strict-2026-06-08
+Already up to date.
+"
+"chore/pin-actions",ok,325e0bf,327167f,"00:43:13.733868 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:13.768531 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/pin-actions
+00:43:14.413022 run-command.c:668       trace: run_command: git stash create
+00:43:14.413022 run-command.c:929       trace: start_command: git stash create
+00:43:14.487029 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:14.501132 git.c:476               trace: built-in: git stash create
+Auto-merging .github/workflows/fuzzing.yml
+00:43:20.295220 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:43:20.296231 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:43:21.162190 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:21.232708 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ .github/workflows/fuzzing.yml        | 2 +-
+ .github/workflows/generate-sdks.yaml | 4 ++--
+ .github/workflows/journey-gate.yml   | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+"
+"chore/pin-github-actions-20260501",ok,327167f,3fdd60b,"00:43:23.435126 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:23.484616 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/pin-github-actions-20260501
+00:43:24.268899 run-command.c:668       trace: run_command: git stash create
+00:43:24.268899 run-command.c:929       trace: start_command: git stash create
+00:43:24.458408 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:24.472147 git.c:476               trace: built-in: git stash create
+Auto-merging .github/workflows/generate-sdks.yaml
+00:43:29.934497 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:43:29.934497 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:43:29.986537 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:29.999079 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ .github/workflows/generate-sdks.yaml               |   8 +-
+ agentapi-plusplus/lib/httpapi/handlers.go          | 340 ++++++++++
+ agentapi-plusplus/lib/httpapi/middleware.go        | 143 ++++
+ agentapi-plusplus/lib/msgfmt/agent_readiness.go    |  56 ++
+ agentapi-plusplus/lib/msgfmt/format_tool_call.go   | 157 +++++
+ agentapi-plusplus/lib/screentracker/diff.go        |  58 ++
+ .../lib/screentracker/pty_conversation.go          | 732 +++++++++++++++++++++
+ chat/src/lib/index.ts                              |  28 +
+ chat/src/lib/types.ts                              | 131 ++++
+ lib/httpapi/chat/marker                            |   0
+ 10 files changed, 1649 insertions(+), 4 deletions(-)
+ create mode 100644 agentapi-plusplus/lib/httpapi/handlers.go
+ create mode 100644 agentapi-plusplus/lib/httpapi/middleware.go
+ create mode 100644 agentapi-plusplus/lib/msgfmt/agent_readiness.go
+ create mode 100644 agentapi-plusplus/lib/msgfmt/format_tool_call.go
+ create mode 100644 agentapi-plusplus/lib/screentracker/diff.go
+ create mode 100644 agentapi-plusplus/lib/screentracker/pty_conversation.go
+ create mode 100644 chat/src/lib/index.ts
+ create mode 100644 chat/src/lib/types.ts
+ delete mode 100644 lib/httpapi/chat/marker
+"
+"chore/pyright-2026-06-08",ok,3fdd60b,3fdd60b,"00:43:30.938726 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:30.983303 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/pyright-2026-06-08
+Already up to date.
+"
+"chore/pytest-markers-2026-06-08",ok,3fdd60b,4fdb769,"00:43:32.583244 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:32.644529 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/pytest-markers-2026-06-08
+00:43:33.209710 run-command.c:668       trace: run_command: git stash create
+00:43:33.210490 run-command.c:929       trace: start_command: git stash create
+00:43:33.391605 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:33.435866 git.c:476               trace: built-in: git stash create
+00:43:35.702741 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+Merge made by the 'ort' strategy.
+00:43:35.702741 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+00:43:35.893835 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:35.959445 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ .eslintrc.json                                 |   7 +
+ cmd/server/server.go                           |  11 ++
+ go.mod                                         |  10 ++
+ go.sum                                         |  25 ++++
+ internal/middleware/middleware.go              |   2 +-
+ internal/observability/observability.go        | 171 +++++++++++++++++++++++++
+ internal/observability/observability_test.go   |  41 ++++++
+ internal/server/server.go                      |  27 ++--
+ internal/server/server_test.go                 |  23 ++++
+ sdk/python/Makefile                            |  27 ++++
+ sdk/python/pyproject.toml                      |  63 +++++++++
+ sdk/python/tests/integration/__init__.py       |   8 ++
+ sdk/python/tests/integration/test_sdk_smoke.py |  48 +++++++
+ 13 files changed, 453 insertions(+), 10 deletions(-)
+ create mode 100644 .eslintrc.json
+ create mode 100644 internal/observability/observability.go
+ create mode 100644 internal/observability/observability_test.go
+ create mode 100644 sdk/python/Makefile
+ create mode 100644 sdk/python/pyproject.toml
+ create mode 100644 sdk/python/tests/integration/__init__.py
+ create mode 100644 sdk/python/tests/integration/test_sdk_smoke.py
+"
+"chore/tsc-strict-2026-06-08",ok,4fdb769,4fdb769,"00:43:37.282017 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:37.395443 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/tsc-strict-2026-06-08
+Already up to date.
+"
+"chore/update-lockfile-agentapi-plusplus",failed,4fdb769,4fdb769,"00:43:39.182407 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+00:43:39.199635 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/update-lockfile-agentapi-plusplus
+00:43:40.391251 run-command.c:668       trace: run_command: git stash create
+00:43:40.391251 run-command.c:929       trace: start_command: git stash create
+00:43:41.666393 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+00:43:41.815616 git.c:476               trace: built-in: git stash create
+CONFLICT (modify/delete): .github/workflows/pages-deploy.yml deleted in origin/chore/update-lockfile-agentapi-plusplus and modified in HEAD.  Version HEAD of .github/workflows/pages-deploy.yml left in tree.
+Auto-merging README.md
+CONFLICT (modify/delete): agentapi-plusplus/chat/package-lock.json deleted in HEAD and modified in origin/chore/update-lockfile-agentapi-plusplus.  Version origin/chore/update-lockfile-agentapi-plusplus of agentapi-plusplus/chat/package-lock.json left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/chat/package.json deleted in HEAD and modified in origin/chore/update-lockfile-agentapi-plusplus.  Version origin/chore/update-lockfile-agentapi-plusplus of agentapi-plusplus/chat/package.json left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/docs/package-lock.json deleted in HEAD and modified in origin/chore/update-lockfile-agentapi-plusplus.  Version origin/chore/update-lockfile-agentapi-plusplus of agentapi-plusplus/docs/package-lock.json left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/docs/package.json deleted in HEAD and modified in origin/chore/update-lockfile-agentapi-plusplus.  Version origin/chore/update-lockfile-agentapi-plusplus of agentapi-plusplus/docs/package.json left in tree.
 Auto-merging docs/package-lock.json
 Auto-merging docs/package.json
-Auto-merging e2e/echo_test.go
-Auto-merging lib/httpapi/claude.go
-Auto-merging lib/httpapi/events_test.go
-Auto-merging lib/httpapi/models.go
-Auto-merging lib/httpapi/server.go
-Auto-merging lib/httpapi/server_test.go
-Auto-merging lib/screentracker/pty_conversation.go
-Auto-merging openapi.json
-Auto-merging scripts/quality-gate.sh
-CONFLICT (modify/delete): vendor/modules.txt deleted in HEAD and modified in origin/agentapi-plusplus/chore/sast-pin-governance-clean.  Version origin/agentapi-plusplus/chore/sast-pin-governance-clean of vendor/modules.txt left in tree.
 Automatic merge failed; fix conflicts and then commit the result."
+"chore/worklog-seed-agentapi-plusplus",failed,4fdb7696324d0d5de3b096cf2aa23d50073555e0,4fdb7696324d0d5de3b096cf2aa23d50073555e0,"02:22:56.134528 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+02:22:56.491405 git.c:476               trace: built-in: git merge --no-edit --strategy-option=their origin/chore/worklog-seed-agentapi-plusplus
+02:23:00.317143 run-command.c:668       trace: run_command: git stash create
+02:23:00.317143 run-command.c:929       trace: start_command: git stash create
+02:23:01.389626 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:23:01.716651 git.c:476               trace: built-in: git stash create
+02:23:08.705808 run-command.c:668       trace: run_command: GIT_INDEX_FILE=.git/index.stash.144928 git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+02:23:08.705808 run-command.c:929       trace: start_command: git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+02:23:10.575996 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:23:10.590002 git.c:476               trace: built-in: git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+fatal: unknown strategy option: -Xtheir"
+"chore/worklog-seed-agentapi-plusplus",ok,4fdb7696324d0d5de3b096cf2aa23d50073555e0,f30ec595729660d7d44c6b2893b5f478646b9340,"02:26:33.607326 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+02:26:33.857273 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/worklog-seed-agentapi-plusplus
+02:26:37.245547 run-command.c:668       trace: run_command: git stash create
+02:26:37.245547 run-command.c:929       trace: start_command: git stash create
+02:26:47.121179 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:26:48.396904 git.c:476               trace: built-in: git stash create
+02:26:59.617936 run-command.c:668       trace: run_command: GIT_INDEX_FILE=.git/index.stash.14768 git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+02:26:59.617936 run-command.c:929       trace: start_command: git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+02:27:02.238079 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:27:02.268117 git.c:476               trace: built-in: git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+Merge made by the 'ort' strategy.
+02:27:08.415123 run-command.c:668       trace: run_command: git maintenance run --auto --no-quiet --detach
+02:27:08.418121 run-command.c:929       trace: start_command: git maintenance run --auto --no-quiet --detach
+02:27:10.129876 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:27:11.754330 git.c:476               trace: built-in: git maintenance run --auto --no-quiet --detach
+ worklogs/2026-06-05-fleet-readiness.md | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+ create mode 100644 worklogs/2026-06-05-fleet-readiness.md"
+"chore/workflow-hygiene-ubuntu-24",failed,f30ec595729660d7d44c6b2893b5f478646b9340,f30ec595729660d7d44c6b2893b5f478646b9340,"02:30:05.014152 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/bin
+02:30:05.026522 git.c:476               trace: built-in: git merge --no-edit --strategy-option=theirs origin/chore/workflow-hygiene-ubuntu-24
+02:30:21.532034 run-command.c:668       trace: run_command: git stash create
+02:30:21.532034 run-command.c:929       trace: start_command: git stash create
+02:30:22.237146 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:30:22.299991 git.c:476               trace: built-in: git stash create
+02:30:27.137676 run-command.c:668       trace: run_command: GIT_INDEX_FILE=.git/index.stash.153504 git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+02:30:27.137676 run-command.c:929       trace: start_command: git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+02:30:28.540881 exec-cmd.c:266          trace: resolved executable dir: C:/Program Files/Git/mingw64/libexec/git-core
+02:30:28.782200 git.c:476               trace: built-in: git update-index --ignore-skip-worktree-entries -z --add --remove --stdin
+Auto-merging .github/workflows/alert-sync-issues.yml
+Auto-merging .github/workflows/ci.yml
+Auto-merging .github/workflows/docs-site.yml
+Auto-merging .github/workflows/fuzzing.yml
+Auto-merging .github/workflows/generate-sdks.yaml
+Auto-merging .github/workflows/go-test.yml
+Auto-merging .github/workflows/journey-gate.yml
+Auto-merging .github/workflows/lint-test.yml
+Auto-merging .github/workflows/policy-gate.yml
+Auto-merging .github/workflows/pr-preview-build.yml
+Auto-merging .github/workflows/pr-preview-cleanup.yml
+Auto-merging .github/workflows/release.yml
+Auto-merging .github/workflows/security-guard.yml
+Auto-merging .github/workflows/self-merge-gate.yml
+Auto-merging .github/workflows/trufflehog.yml
+Auto-merging README.md
+CONFLICT (modify/delete): agentapi-plusplus/e2e/asciinema/parser.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/e2e/asciinema/parser.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/internal/routing/agent_bifrost.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/internal/routing/agent_bifrost.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/internal/routing/agent_bifrost_test.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/internal/routing/agent_bifrost_test.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/internal/server/agent_handler.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/internal/server/agent_handler.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/internal/server/server.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/internal/server/server.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/internal/server/server_test.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/internal/server/server_test.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/lib/msgfmt/firstline_test.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/lib/msgfmt/firstline_test.go left in tree.
+CONFLICT (modify/delete): agentapi-plusplus/main_test.go deleted in HEAD and modified in origin/chore/workflow-hygiene-ubuntu-24.  Version origin/chore/workflow-hygiene-ubuntu-24 of agentapi-plusplus/main_test.go left in tree.
+Auto-merging docs/.vitepress/theme/index.ts
+Automatic merge failed; fix conflicts and then commit the result."
+"ci/add-golangci-lint",skipped,f30ec595729660d7d44c6b2893b5f478646b9340,f30ec595729660d7d44c6b2893b5f478646b9340,"Skipped: overlaps with workflow-hygiene/huge docs/node_modules churn"
+"chore/workflow-hygiene-ubuntu-24",skipped,f30ec595729660d7d44c6b2893b5f478646b9340,f30ec595729660d7d44c6b2893b5f478646b9340,"Skipped: would reintroduce deleted agentapi-plusplus files and massive docs/node_modules churn"
