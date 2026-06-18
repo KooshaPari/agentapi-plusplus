@@ -14,15 +14,6 @@ Progress: ████████░░ 80%
 
 # AgentAPI++ (KooshaPari Fork)
 
-## State
-
-Progress: `[████████▌░] 85%` — HTTP gateway for 11 agent CLIs (forked from anthropics/agentapi).
-
-_Updated 2026-06-08 — audit pass._
-
-[![CI](https://github.com/KooshaPari/agentapi-plusplus/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/agentapi-plusplus/actions)
-[![License](https://img.shields.io/github/license/KooshaPari/agentapi-plusplus)](LICENSE)
-
 Multi-model AI routing gateway extending Anthropic's agentapi — Phenotype org fork (74 commits ahead, 7 fixes staged for upstream).
 
 **Status:** active
