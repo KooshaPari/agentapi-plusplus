@@ -14,13 +14,11 @@ type MessageType string
 const (
 	MessageTypeUser MessageType = "user"
 	MessageTypeRaw  MessageType = "raw"
-	MessageTypeCommand MessageType = "command"
 )
 
 var MessageTypeValues = []MessageType{
 	MessageTypeUser,
 	MessageTypeRaw,
-	MessageTypeCommand,
 }
 
 func (m MessageType) Schema(r huma.Registry) *huma.Schema {
