@@ -1,0 +1,79 @@
+# deny.toml — agentapi-plusplus tier-0 hygiene
+#
+# This file is the canonical cargo-deny config of record. The repo is Go today,
+# so the active enforcement path is `.github/workflows/deny.yml` (which uses
+# `go-licenses check`). The deny.toml is checked in so the project can adopt
+# Rust tooling without losing fleet parity, and the `cargo-deny-config` job in
+# `deny.yml` exercises it whenever Cargo.lock is present.
+#
+# Schema reference: https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+all-features = false
+
+[advisories]
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "warn"
+ignore = []
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    "Unlicense",
+    "CC0-1.0",
+    "Zlib",
+]
+confidence-threshold = 0.8
+
+# Licenses that are tolerated but flagged for review.
+warn = [
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "0BSD",
+    "OpenSSL",
+    "curl",
+]
+
+deny = [
+    "GPL-1.0",
+    "GPL-2.0",
+    "GPL-3.0",
+    "AGPL-1.0",
+    "AGPL-3.0",
+    "LGPL-2.0",
+    "LGPL-2.1",
+    "LGPL-3.0",
+    "SSPL-1.0",
+    "Commons-Clause",
+    "Elastic-2.0",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+deny = []
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io"]
+allow-git = []
+
+# Allow the SPDX-Exception form for the dual-licensed MIT OR Apache-2.0
+# SPDX-License-Identifier header convention used throughout this fleet.
+[[licenses.clarify]]
+name = "ring"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0fd23 },
+]

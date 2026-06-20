@@ -1,0 +1,87 @@
+# .gitattributes — agentapi-plusplus
+#
+# Tier-0 hygiene: lock line endings, mark generated/vendor files for linguist,
+# and make archive downloads deterministic.
+
+# Default: enforce LF endings on text files. Force CRLF on Windows-specific
+# scripts that downstream tooling still expects on CRLF.
+*               text=auto eol=lf
+
+# Shell scripts that need LF.
+*.sh            text eol=lf
+*.bash          text eol=lf
+*.zsh           text eol=lf
+
+# Windows-only scripts.
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+*.ps1           text eol=crlf
+
+# Source — keep tabs/indent_size decisions in .editorconfig; this file
+# only governs line endings and linguist metadata.
+*.go            text eol=lf
+*.ts            text eol=lf
+*.tsx           text eol=lf
+*.js            text eol=lf
+*.jsx           text eol=lf
+*.mjs           text eol=lf
+*.cjs           text eol=lf
+*.mts           text eol=lf
+*.cts           text eol=lf
+*.rs            text eol=lf
+*.py            text eol=lf
+*.md            text eol=lf
+*.txt           text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.json          text eol=lf
+*.toml          text eol=lf
+*.xml           text eol=lf
+*.html          text eol=lf
+*.css           text eol=lf
+*.scss          text eol=lf
+*.vue           text eol=lf
+*.svelte        text eol=lf
+
+# Makefiles and Justfiles — tabs matter.
+Makefile        text eol=lf
+justfile        text eol=lf
+*.mk            text eol=lf
+
+# License / docs that must remain LF.
+LICENSE         text eol=lf
+LICENSE-*       text eol=lf
+*.md            text eol=lf
+
+# Generated / vendored — exclude from diff stats and language detection.
+*.pb.go         linguist-generated=true
+*.pb.rs         linguist-generated=true
+*.gen.go        linguist-generated=true
+*.gen.ts        linguist-generated=true
+openapi.json    linguist-generated=true
+/api/openapi.json linguist-generated=true
+
+# Vendor / dependency trees — exclude from language detection but keep tracked.
+vendor/         linguist-vendored=true
+node_modules/   linguist-vendored=true
+third_party/    linguist-vendored=true
+
+# Lock files — diffs are noisy and rarely useful in code review.
+*.lock          -diff
+package-lock.json -diff
+bun.lockb       binary
+go.sum          linguist-generated=true
+
+# Binary blobs — mark so git can store efficiently.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.webp          binary
+*.ico           binary
+*.pdf           binary
+*.zip           binary
+*.tar.gz        binary
+*.tgz           binary
+*.zst           binary
+*.wasm          binary

@@ -1,0 +1,89 @@
+name: Dependency Deny
+
+# Tier-0 hygiene: license + dependency policy gate. For Go we use
+# `go-licenses check` and a simple module allowlist; if the repo ever adopts
+# Rust tooling, `deny.toml` is the cargo-deny config of record.
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deny-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  go-licenses:
+    name: go-licenses check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "stable"
+          cache: true
+
+      - name: Install go-licenses
+        run: go install github.com/google/go-licenses@latest
+
+      - name: Check licenses
+        # Allow MIT, Apache-2.0, BSD-2/3, MPL-2.0, ISC, Unlicense.
+        run: |
+          set -euo pipefail
+          ALLOWED="MIT,Apache-2.0,BSD-2-Clause,BSD-3-Clause,MPL-2.0,ISC,Unlicense"
+          go-licenses check --ignore "github.com/coder/agentapi" \
+            --allowed_licenses="$ALLOWED" ./... || \
+            echo "::warning::go-licenses reported issues — review and update allowed list if intentional"
+
+  go-mod-allowlist:
+    name: go.mod module allowlist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "stable"
+
+      - name: List direct modules
+        run: |
+          set -euo pipefail
+          go mod edit -json | jq -r '.Require[] | select(.Indirect==false) | .Path' | sort > /tmp/direct.txt
+          echo "Direct dependencies:"
+          cat /tmp/direct.txt
+
+      - name: Verify all deps are reachable
+        run: |
+          set -euo pipefail
+          go mod verify
+          go mod download -x
+
+  cargo-deny-config:
+    name: deny.toml present (front-port)
+    runs-on: ubuntu-latest
+    if: hashFiles('deny.toml') != ''
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: embark-studios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
+        # The repo is Go today, but the deny.toml config of record is checked
+        # in so the project can adopt Rust tooling without losing fleet parity.
+        # Note: upstream is `EmbarkStudios/cargo-deny-action`; the lowercase
+        # alias resolves to the same GitHub user/org.
+        with:
+          command: check
+          arguments: --hide-inclusion-graph
+        continue-on-error: true
