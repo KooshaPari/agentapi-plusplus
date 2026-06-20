@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security disclosure
+    url: https://github.com/KooshaPari/agentapi-plusplus/security/advisories/new
+    about: Please do not open public issues for security vulnerabilities. Use GitHub Security Advisories instead (see SECURITY.md).
+  - name: Phenotype org docs
+    url: https://github.com/KooshaPari
+    about: For cross-repo coordination, fleet standards, and tier-0 hygiene references.
