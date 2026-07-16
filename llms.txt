@@ -1,0 +1,20 @@
+# agentapi-plusplus
+
+## Summary
+Brief description of agentapi-plusplus and its role in the fleet.
+
+## Stack
+- **Language:** Go 1.23+
+- **Build:** go build
+- **Test:** go test
+
+## Key files
+- `AGENTS.md` — agent governance
+- `SSOT.md` — single source of truth
+- `justfile` — build system
+- `deny.toml` — cargo-deny config
+
+## Conventions
+- Stdlib-only Python where possible
+- Cargo-deny on Rust crates
+- gitleaks on commit
