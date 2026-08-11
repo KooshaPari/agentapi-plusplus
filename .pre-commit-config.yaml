@@ -66,12 +66,6 @@ repos:
 
   # ── Secret scanning ──
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.28.1
+    rev: v8.28.0
     hooks:
       - id: gitleaks
-
-  # ── Trunk.io (if installed) ──
-  - repo: https://github.com/trunk-io/trunk
-    rev: v1.0.0
-    hooks:
-      - id: trunk-check
