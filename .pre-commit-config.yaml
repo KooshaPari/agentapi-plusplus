@@ -33,11 +33,9 @@ repos:
     rev: v1.15.0
     hooks:
       - id: mypy
-        args: [--ignore-missing-imports, --no-strict-optional]
-        additional_dependencies: [types-requests, types-PyYAML]
+        args: [--ignore-missing-imports, --no-strict-optional, sdk/python/agentapi]
+        additional_dependencies: [httpx]
         pass_filenames: false
-        entry: mypy src/
-        language: system
 
   # ── Rust ──
   - repo: https://github.com/rust-lang/rust-clippy
