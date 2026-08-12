@@ -18,8 +18,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: KooshaPari/phenotypeActions/actions/policy-gate@0000000000000000000000000000000000000000 # placeholder SHA; source 404s; replace when reachable
+      - name: Enforce local policy
+        uses: ./.github/actions/policy-gate
         with:
-          base_branch: main
+          base_branch: ${{ github.event.pull_request.base.ref }}
           block_merge_commits: true
           require_layered_fix: true
+          head_ref: ${{ github.head_ref }}
+          pr_labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
