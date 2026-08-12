@@ -1,0 +1,65 @@
+name: Policy Gate
+description: Enforce repository PR merge and layering policy without external action access.
+
+inputs:
+  base_branch:
+    description: Base branch for the PR diff range.
+    required: false
+    default: main
+  block_merge_commits:
+    description: Fail when merge commits exist in the PR diff range.
+    required: false
+    default: "true"
+  require_layered_fix:
+    description: Require fix branches to target a layer or carry an exception label.
+    required: false
+    default: "false"
+  head_ref:
+    description: Pull request head branch name.
+    required: false
+  pr_labels:
+    description: JSON array of pull request labels.
+    required: false
+    default: "[]"
+
+outputs:
+  passed:
+    description: Whether all configured policy checks passed.
+    value: ${{ steps.policy.outputs.passed }}
+
+runs:
+  using: composite
+  steps:
+    - id: policy
+      shell: bash
+      env:
+        BASE_REF: ${{ github.base_ref || inputs.base_branch }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        BLOCK_MERGES: ${{ inputs.block_merge_commits }}
+        REQUIRE_LAYERED: ${{ inputs.require_layered_fix }}
+        HEAD_REF: ${{ inputs.head_ref }}
+        PR_LABELS: ${{ inputs.pr_labels }}
+      run: |
+        set -euo pipefail
+
+        if [[ "$REQUIRE_LAYERED" == "true" && -n "$HEAD_REF" && "$HEAD_REF" == fix/* ]]; then
+          if [[ "$BASE_REF" == "main" || "$BASE_REF" == "master" ]]; then
+            if [[ "$PR_LABELS" != *"layered-pr-exception"* ]]; then
+              echo "::error::fix/* PRs must target a layered branch, not main/master."
+              echo "Use stack/*, layer/*, release/*, or add label layered-pr-exception."
+              exit 1
+            fi
+          fi
+        fi
+
+        if [[ "$BLOCK_MERGES" == "true" ]]; then
+          git fetch origin "$BASE_REF" --depth=1 || true
+          MERGES="$(git rev-list --merges "origin/$BASE_REF..$HEAD_SHA" || true)"
+          if [[ -n "$MERGES" ]]; then
+            echo "::error::Merge commits detected in PR diff range:"
+            echo "$MERGES"
+            exit 1
+          fi
+        fi
+
+        echo "passed=true" >> "$GITHUB_OUTPUT"
