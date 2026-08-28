@@ -1,62 +1,16 @@
-## Work State
+# AgentAPI++
 
-| Field | Value |
-|---|---|
-| Last commit | 2026-06-08 16:57:39 -0700 |
-| Open issues | 30 |
-| Open PRs | 7 |
-| Focus | agentapi-cpp-port |
+> **Fork attribution:** AgentAPI++ is KooshaPari's fork of [coder/agentapi](https://github.com/coder/agentapi). GitHub's native fork relationship preserves upstream provenance.
 
-Progress: ████████░░ 80%
+## Status
 
-> **Work state:** ACTIVE · **Progress:** `████████▌░ 85%`
-> HTTP API controlling 11 agent CLIs; single cobra binary, full endpoint set served, build green. Upkeep: huma/chat-embed CI + flaky e2e. · updated 2026-06-02
+This repository is retained as source preservation for the Go HTTP gateway. Its agent-control integration work was folded into [Substrate](https://github.com/KooshaPari/substrate)'s `engine-agentapi` adapter; do not treat this fork's repository history, releases, or upstream project activity as a claim of current independent adoption.
 
-# AgentAPI++ (KooshaPari Fork)
+## What this fork contains
 
-> **FOLDED 2026-06-24** — This fork has been folded into the [Phenotype substrate](https://github.com/KooshaPari/substrate) workspace as [`crates/engine-agentapi`](https://github.com/KooshaPari/substrate/tree/main/crates/engine-agentapi). The Go HTTP gateway (this binary) is now consumed as an external subprocess by the Rust engine adapter. Source preservation only — do not file new issues or PRs here. See ADR-ECO-007 and `plans/2026-06-22-phenotype-ecosystem-router-architecture-v1.md` for the fold rationale.
->
-> **Migration:** Replace any `KooshaPari/agentapi-plusplus` build dependency with substrate's `engine-agentapi` crate. The 5-endpoint HTTP surface (`/status`, `/messages`, `/message`, `/events`, `/upload`) is preserved verbatim by the Rust client.
+The preserved Go gateway exposes HTTP control surfaces for CLI-based coding agents. Fork-specific work focused on multi-agent integration and operational interoperability; upstream work remains attributed to `coder/agentapi`.
 
-## State
-
-Progress: `[████████▌░] 85%` — HTTP gateway for 11 agent CLIs (forked from anthropics/agentapi).
-
-_Updated 2026-06-08 — audit pass._
-
-[![CI](https://github.com/KooshaPari/agentapi-plusplus/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/agentapi-plusplus/actions)
-[![License](https://img.shields.io/github/license/KooshaPari/agentapi-plusplus)](LICENSE)
-
-Multi-model AI routing gateway extending Anthropic's agentapi — Phenotype org fork (74 commits ahead, 7 fixes staged for upstream).
-
-**Status:** active
-
-Control [Claude Code](https://github.com/anthropics/claude-code), [AmazonQ](https://aws.amazon.com/developer/learning/q-developer-cli/), [Opencode](https://opencode.ai/), [Goose](https://github.com/block/goose), [Aider](https://github.com/Aider-AI/aider), [Gemini](https://github.com/google-gemini/gemini-cli), [GitHub Copilot](https://github.com/github/copilot-cli), [Sourcegraph Amp](https://ampcode.com/), [Codex](https://github.com/openai/codex), [Auggie](https://docs.augmentcode.com/cli/overview), and [Cursor CLI](https://cursor.com/en/cli) with an HTTP API.
-
----
-
-## What is AgentAPI++?
-
-AgentAPI++ provides an HTTP API to programmatically control CLI-based AI coding agents:
-
-```
-HTTP Request → AgentAPI++ → Terminal Emulator → Claude Code, Cursor, Aider, etc.
-```
-
-### Key Capabilities
-
-| Capability | Description |
-|------------|-------------|
-| **Multi-Agent Control** | Claude Code, Cursor, Aider, Codex, Goose, Gemini, Copilot, and more |
-| **HTTP Interface** | REST API for any language/platform |
-| **Terminal Emulation** | In-memory PTY for agent interaction |
-| **Message Parsing** | Structured responses from agent output |
-| **Session Management** | Persistent conversations with state |
-
----
-
-## Quick Start
-
+## Quick start
 ### Install Binary
 
 ```bash
