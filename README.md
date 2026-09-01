@@ -2,6 +2,8 @@
 
 > **Fork attribution:** AgentAPI++ is KooshaPari's fork of [coder/agentapi](https://github.com/coder/agentapi). GitHub's native fork relationship preserves upstream provenance.
 
+[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/agentapi-plusplus/total)](https://github.com/KooshaPari/agentapi-plusplus/releases)
+
 ## Status
 
 This repository is retained as source preservation for the Go HTTP gateway. Its agent-control integration work was folded into [Substrate](https://github.com/KooshaPari/substrate)'s `engine-agentapi` adapter; do not treat this fork's repository history, releases, or upstream project activity as a claim of current independent adoption.
